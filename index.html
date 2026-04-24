@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Noto+Sans+SC:wght@100;300&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 极浅的高级灰色 */
             --bg-main: #f9f9f9; 
             --text-main: #111111;
+            --accent: #e5e5e5;
         }
 
         body {
@@ -20,6 +20,27 @@
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
+        }
+
+        /* --- 艺术化加载页 (Preloader) --- */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #111;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: transform 1.2s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+
+        .loader-count {
+            font-size: 12vw;
+            font-weight: 100;
+            line-height: 1;
+            letter-spacing: -0.05em;
         }
 
         /* --- 初始全屏首屏 (Hero Section) --- */
@@ -32,6 +53,7 @@
             align-items: center;
             justify-content: center;
             background: #000;
+            clip-path: inset(0 0 0 0); /* 用于入场切片效果 */
         }
 
         .hero-bg {
@@ -41,14 +63,14 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* 昨天你喜欢的镜头缓慢拉近动画 */
-            animation: kenBurns 20s infinite alternate ease-in-out;
-            opacity: 0.7;
+            animation: artisticPan 30s infinite alternate ease-in-out;
+            opacity: 0.8;
+            filter: saturate(0.8) contrast(1.1);
         }
 
-        @keyframes kenBurns {
-            from { transform: scale(1); }
-            to { transform: scale(1.2); }
+        @keyframes artisticPan {
+            0% { transform: scale(1.1) translateX(-2%); }
+            100% { transform: scale(1.2) translateX(2%); }
         }
 
         .hero-content {
@@ -56,60 +78,64 @@
             z-index: 10;
             text-align: center;
             color: white;
+            max-width: 80vw;
         }
 
         .hero-title {
-            font-size: clamp(3rem, 10vw, 8rem);
-            font-weight: 200;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            margin-bottom: 1rem;
+            font-size: clamp(2.5rem, 8vw, 6.5rem);
+            font-weight: 100;
+            letter-spacing: -0.03em;
+            line-height: 0.9;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: titleReveal 1.5s 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
 
-        /* --- 瀑布流画廊优化 --- */
+        @keyframes titleReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- 瀑布流画廊 --- */
         .masonry-grid {
             column-count: 1;
-            column-gap: 3rem;
+            column-gap: 4rem;
         }
         @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
         @media (min-width: 1280px) { .masonry-grid { column-count: 3; } }
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 5rem;
-            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-            filter: grayscale(0.8);
-            opacity: 0.8;
+            margin-bottom: 6rem;
+            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+            filter: grayscale(1);
+            opacity: 0.7;
         }
 
         .masonry-item:hover {
             filter: grayscale(0);
             opacity: 1;
-            transform: translateY(-10px);
+            transform: translateY(-15px);
         }
 
         .zoom-container {
             position: relative;
             overflow: hidden;
-            background: #ededed;
+            background: var(--accent);
         }
 
         .zoom-container img {
-            transition: transform 6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: transform 8s cubic-bezier(0.2, 0, 0.2, 1);
         }
 
         .masonry-item:hover .zoom-container img {
-            transform: scale(1.1);
+            transform: scale(1.12);
         }
 
-        /* --- 灯箱 (Lightbox) --- */
+        /* --- 灯箱 --- */
         #lightbox {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(249, 249, 249, 0.99);
             z-index: 2000;
             justify-content: center;
@@ -117,22 +143,30 @@
             cursor: zoom-out;
         }
 
-        #lightbox.active { display: flex; animation: fadeIn 0.4s forwards; }
+        #lightbox.active { display: flex; animation: fadeIn 0.5s forwards; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         #lightbox img {
-            max-width: 90%;
-            max-height: 85%;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.05);
+            max-width: 85%;
+            max-height: 80%;
+            object-fit: contain;
         }
 
         .micro-text {
-            font-size: 9px;
-            letter-spacing: 0.4em;
+            font-size: 10px;
+            letter-spacing: 0.5em;
             text-transform: uppercase;
             font-weight: 300;
         }
+
+        .line-accent {
+            height: 1px;
+            background: currentColor;
+            width: 0;
+            transition: width 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .group:hover .line-accent { width: 100%; }
 
         /* 隐藏滚动条 */
         ::-webkit-scrollbar { width: 0px; }
@@ -140,54 +174,70 @@
 </head>
 <body>
 
+    <!-- 加载动画 -->
+    <div id="loader">
+        <div class="loader-count" id="loader-percent">00</div>
+        <div class="micro-text mt-4 opacity-40">Loading Archive</div>
+    </div>
+
     <!-- 沉浸式灯箱 -->
     <div id="lightbox" onclick="closeLightbox()">
         <img id="lightbox-img" src="" alt="">
-        <div class="absolute bottom-12 micro-text text-gray-400">Close / Click Anywhere</div>
+        <div class="absolute top-12 right-12 micro-text cursor-pointer">Close ✕</div>
     </div>
 
     <!-- 首屏 Hero Section -->
     <section class="hero">
-        <!-- 默认使用第一张作品作为背景 -->
-        <img src="1 (1).jpg" class="hero-bg" alt="Hero Background">
+        <img src="1 (1).jpg" class="hero-bg" alt="Hero">
         <div class="hero-content">
-            <p class="micro-text mb-6 opacity-60">Beyond Visualization</p>
-            <h2 class="hero-title">The Soul of<br>Material.</h2>
-            <div class="mt-12 flex justify-center">
-                <div class="w-px h-16 bg-white/30 animate-bounce"></div>
+            <p class="micro-text mb-8 opacity-40 tracking-[0.8em]">Atmosphere / Space / Light</p>
+            <h2 class="hero-title">Beyond the<br><i class="font-serif italic opacity-80">Visible.</i></h2>
+            <div class="mt-20">
+                <button onclick="scrollToGallery()" class="group">
+                    <p class="micro-text opacity-40 group-hover:opacity-100 transition-opacity">Explore Portfolio</p>
+                    <div class="line-accent mt-2 mx-auto"></div>
+                </button>
             </div>
         </div>
     </section>
 
     <!-- 网页主体容器 -->
-    <div class="px-8 py-16 md:px-20 md:py-32 lg:px-32">
+    <div id="main-content" class="px-8 py-20 md:px-24 md:py-40 lg:px-40">
         
-        <!-- 导航栏 -->
-        <header class="mb-32 md:mb-52 flex flex-col md:flex-row justify-between items-end">
-            <div>
-                <p class="micro-text text-gray-400 mb-6 ml-1">BUZZVISUAL STUDIO</p>
-                <h1 class="text-7xl md:text-9xl font-thin tracking-tighter leading-none">BUZZ</h1>
+        <!-- 艺术化导航 -->
+        <header class="mb-40 md:mb-64 flex flex-col md:flex-row justify-between items-start">
+            <div class="group cursor-default">
+                <h1 class="text-8xl md:text-[12rem] font-thin tracking-tighter leading-[0.8] mb-8 transition-all duration-700 group-hover:tracking-normal">BUZZ</h1>
+                <p class="micro-text text-gray-400 ml-2">Digital Craftsmanship</p>
             </div>
-            <nav class="mt-16 md:mt-0 flex flex-wrap gap-x-12 gap-y-6 micro-text text-gray-400">
-                <a href="#" class="hover:text-black transition-colors">Works</a>
-                <a href="#" class="hover:text-black transition-colors">Information</a>
-                <a href="mailto:office@buzzvisual.com" class="text-black font-medium">Contact</a>
+            <nav class="mt-20 md:mt-4 flex flex-col gap-6 micro-text text-gray-400 text-right w-full md:w-auto">
+                <a href="#" class="group">
+                    <span class="hover:text-black transition-colors">Architecture</span>
+                    <div class="line-accent bg-black"></div>
+                </a>
+                <a href="#" class="group">
+                    <span class="hover:text-black transition-colors">Interior</span>
+                    <div class="line-accent bg-black"></div>
+                </a>
+                <a href="mailto:office@buzzvisual.com" class="text-black font-medium mt-4">Connect —></a>
             </nav>
         </header>
 
         <!-- 画廊主体 -->
         <main id="gallery" class="masonry-grid">
-            <!-- 图片由 JS 动态生成 -->
+            <!-- 由 JS 生成 -->
         </main>
 
         <!-- 页脚 -->
-        <footer class="mt-60 mb-16 pt-16 border-t border-gray-100 flex flex-col md:flex-row justify-between items-start gap-8">
-            <div class="max-w-md">
-                <h2 class="text-2xl font-light mb-4">Visualizing the future of architecture.</h2>
-                <p class="micro-text text-gray-400">London / Shanghai / Global</p>
+        <footer class="mt-64 mb-20 flex flex-col md:flex-row justify-between items-end gap-12">
+            <div class="max-w-xl">
+                <p class="text-3xl font-extralight leading-relaxed text-gray-400">
+                    We translate unbuilt architecture into <span class="text-black">visual experiences</span> that evoke emotion and tell stories of space.
+                </p>
             </div>
-            <div class="micro-text text-gray-400">
-                © 2024 BUZZ — ALL RIGHTS RESERVED
+            <div class="flex flex-col items-end gap-4 micro-text text-gray-300">
+                <span>London / Global</span>
+                <span class="text-gray-900">© 2024 BUZZ STUDIO</span>
             </div>
         </footer>
     </div>
@@ -198,11 +248,26 @@
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
 
+        // 加载动画逻辑
+        function startLoader() {
+            let count = 0;
+            const counter = document.getElementById('loader-percent');
+            const interval = setInterval(() => {
+                count += Math.floor(Math.random() * 15) + 1;
+                if (count >= 100) {
+                    count = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('loader').style.transform = 'translateY(-100%)';
+                    }, 500);
+                }
+                counter.innerText = count.toString().padStart(2, '0');
+            }, 80);
+        }
+
         function initGallery() {
             for (let i = 1; i <= IMAGE_COUNT; i++) {
-                // 适配 1 (x).jpg 格式
                 const fileName = `1 (${i}).jpg`;
-                
                 const item = document.createElement('div');
                 item.className = 'masonry-item group cursor-zoom-in';
                 item.onclick = () => openLightbox(fileName);
@@ -211,20 +276,27 @@
                     <div class="zoom-container">
                         <img 
                             src="${encodeURIComponent(fileName)}" 
-                            alt="Project ${i}"
+                            alt="Visual ${i}"
                             class="w-full h-auto"
                             loading="lazy"
                             onerror="handleImageError(this, '${fileName}')"
                         >
+                        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                     </div>
-                    <div class="mt-8 flex justify-between items-baseline">
-                        <h3 class="micro-text text-gray-900">BV.2024.P${i.toString().padStart(2, '0')}</h3>
-                        <span class="micro-text text-gray-300">Exterior</span>
+                    <div class="mt-10 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <h3 class="micro-text text-gray-900 font-medium">Ref. BV-0${i}</h3>
+                            <div class="w-8 h-px bg-gray-200"></div>
+                        </div>
+                        <p class="text-[11px] text-gray-400 uppercase tracking-widest">Architectural Still</p>
                     </div>
                 `;
-
                 gallery.appendChild(item);
             }
+        }
+
+        function scrollToGallery() {
+            document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' });
         }
 
         function openLightbox(src) {
@@ -240,13 +312,16 @@
 
         function handleImageError(img, name) {
             img.parentElement.innerHTML = `
-                <div class="py-40 flex items-center justify-center bg-gray-50 border border-gray-100">
-                    <span class="micro-text text-gray-300">Syncing ${name}</span>
+                <div class="py-48 flex items-center justify-center bg-gray-100 micro-text text-gray-300">
+                    Pending / ${name}
                 </div>
             `;
         }
 
-        window.addEventListener('load', initGallery);
+        window.addEventListener('load', () => {
+            startLoader();
+            initGallery();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeLightbox();
