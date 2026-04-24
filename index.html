@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Noto+Sans+SC:wght@200;300&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 更有质感的浅灰色背景 */
             --bg-main: #f2f2f2; 
             --text-main: #1a1a1a;
             --text-muted: #666;
@@ -21,7 +20,6 @@
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             letter-spacing: 0.02em;
-            transition: background-color 0.5s ease;
         }
 
         /* 瀑布流布局 */
@@ -46,13 +44,46 @@
             transform: translateY(-10px);
         }
 
-        /* 滚动条 */
+        /* 沉浸式灯箱样式 */
+        #lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(242, 242, 242, 0.98); /* 匹配网页背景的超淡色遮罩 */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        #lightbox img {
+            max-width: 90%;
+            max-height: 85%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95);
+            transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        #lightbox.active img {
+            transform: scale(1);
+        }
+
+        /* 隐藏滚动条 */
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: var(--bg-main); }
         ::-webkit-scrollbar-thumb { background: #d1d1d1; }
-        ::-webkit-scrollbar-thumb:hover { background: #bbb; }
 
-        /* 入场动画 */
+        /* 动画 */
         @keyframes reveal {
             from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
             to { opacity: 1; transform: translateY(0); filter: blur(0); }
@@ -78,6 +109,12 @@
     </style>
 </head>
 <body class="px-6 py-10 md:px-16 md:py-20 lg:px-24">
+
+    <!-- 灯箱容器 -->
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Zoomed View">
+        <div class="absolute bottom-10 micro-text text-gray-400">Click anywhere to close</div>
+    </div>
 
     <!-- 导航栏 -->
     <header class="mb-24 md:mb-40 flex flex-col md:flex-row justify-between items-start reveal">
@@ -113,14 +150,17 @@
     <script>
         const IMAGE_COUNT = 20; 
         const gallery = document.getElementById('gallery');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
 
         function initGallery() {
             for (let i = 1; i <= IMAGE_COUNT; i++) {
-                // 适配你截图中的小写 .jpg
                 const fileName = `1 (${i}).jpg`;
                 
                 const item = document.createElement('div');
-                item.className = 'masonry-item group cursor-crosshair';
+                item.className = 'masonry-item group cursor-zoom-in';
+                // 绑定点击事件，打开灯箱
+                item.onclick = () => openLightbox(fileName);
 
                 item.innerHTML = `
                     <div class="relative overflow-hidden bg-[#e8e8e8]">
@@ -145,6 +185,18 @@
             }
         }
 
+        // 灯箱逻辑
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = 'auto'; // 恢复滚动
+        }
+
         function handleImageError(img, name) {
             img.parentElement.innerHTML = `
                 <div class="py-32 flex items-center justify-center bg-[#e8e8e8] text-[9px] uppercase tracking-[0.3em] text-gray-400">
@@ -154,6 +206,11 @@
         }
 
         window.addEventListener('load', initGallery);
+
+        // ESC 键关闭灯箱
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
     </script>
 </body>
 </html>
