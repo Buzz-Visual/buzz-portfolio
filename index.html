@@ -68,12 +68,11 @@
             break-inside: avoid;
             margin-bottom: 6rem;
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
-            filter: grayscale(1);
-            opacity: 0.7;
+            /* 移除了灰度滤镜，保留透明度呼吸感 */
+            opacity: 0.85;
         }
 
         .masonry-item:hover {
-            filter: grayscale(0);
             opacity: 1;
             transform: translateY(-15px);
         }
@@ -115,26 +114,35 @@
             width: 100%;
         }
 
-        /* --- 灯箱 --- */
+        /* --- 灯箱优化 (Lightbox Fade In/Out) --- */
         #lightbox {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(249, 249, 249, 0.99);
+            background: rgba(249, 249, 249, 0.98);
             z-index: 2000;
             justify-content: center;
             align-items: center;
             cursor: zoom-out;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
-        #lightbox.active { display: flex; animation: fadeIn 0.5s forwards; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #lightbox.active { 
+            display: flex; 
+            opacity: 1;
+        }
 
         #lightbox img {
             max-width: 85%;
             max-height: 80%;
             object-fit: contain;
+            transform: scale(0.95);
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        #lightbox.active img {
+            transform: scale(1);
         }
 
         .micro-text {
@@ -253,12 +261,21 @@
 
         function openLightbox(src) {
             lightboxImg.src = src;
+            lightbox.style.display = 'flex';
+            // 强制回流以触发 transition
+            void lightbox.offsetWidth;
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
+            // 等待动画结束后隐藏
+            setTimeout(() => {
+                if (!lightbox.classList.contains('active')) {
+                    lightbox.style.display = 'none';
+                }
+            }, 500);
             document.body.style.overflow = 'auto';
         }
 
