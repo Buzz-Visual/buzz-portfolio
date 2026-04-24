@@ -22,7 +22,7 @@
             overflow-x: hidden;
         }
 
-        /* --- 黑色幕布加载页 (Curtain Loader) --- */
+        /* --- 加载页 --- */
         #loader {
             position: fixed;
             inset: 0;
@@ -44,7 +44,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* --- 主内容入场效果 --- */
         #main-wrapper {
             opacity: 0;
             transform: translateY(40px);
@@ -56,7 +55,7 @@
             transform: translateY(0);
         }
 
-        /* --- 瀑布流画廊 --- */
+        /* --- 瀑布流布局 (Masonry) --- */
         .masonry-grid {
             column-count: 1;
             column-gap: 2rem; 
@@ -66,20 +65,20 @@
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 3rem; 
-            transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
-            opacity: 1;
+            margin-bottom: 3.5rem; 
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
         .masonry-item:hover {
-            opacity: 0.8;
-            transform: translateY(-10px);
+            opacity: 0.9;
+            transform: translateY(-8px);
         }
 
         .zoom-container {
             position: relative;
             overflow: hidden;
-            background: var(--accent);
+            background: #eeeeee;
+            min-height: 150px;
         }
 
         .zoom-container img {
@@ -87,33 +86,14 @@
             height: auto;
             display: block;
             object-fit: cover;
-            transition: transform 8s cubic-bezier(0.2, 0, 0.2, 1);
+            transition: transform 10s cubic-bezier(0.2, 0, 0.2, 1);
         }
 
         .masonry-item:hover .zoom-container img {
-            transform: scale(1.08);
+            transform: scale(1.1);
         }
 
-        /* --- 横线动效 --- */
-        .nav-link {
-            position: relative;
-            padding-bottom: 4px;
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background-color: #111;
-            transition: width 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        /* --- 灯箱优化 --- */
+        /* --- 灯箱 --- */
         #lightbox {
             display: none;
             position: fixed;
@@ -124,25 +104,20 @@
             align-items: center;
             cursor: zoom-out;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.4s ease;
         }
 
-        #lightbox.active { 
-            display: flex; 
-            opacity: 1;
-        }
+        #lightbox.active { display: flex; opacity: 1; }
 
         #lightbox img {
-            max-width: 85%;
-            max-height: 80%;
+            max-width: 92%;
+            max-height: 88%;
             object-fit: contain;
-            transform: scale(0.95);
+            transform: scale(0.98);
             transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        #lightbox.active img {
-            transform: scale(1);
-        }
+        #lightbox.active img { transform: scale(1); }
 
         .micro-text {
             font-size: 10px;
@@ -151,46 +126,41 @@
             font-weight: 300;
         }
 
-        /* 隐藏滚动条 */
         ::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body class="bg-[#f9f9f9]">
 
-    <!-- 加载幕布 -->
+    <!-- 加载动画 -->
     <div id="loader">
         <div class="loader-count" id="loader-percent">00</div>
-        <div class="micro-text mt-6 opacity-30 tracking-[1em]">Preparing Gallery</div>
+        <div class="micro-text mt-6 opacity-30 tracking-[1em]">Updating Visuals</div>
     </div>
 
-    <!-- 沉浸式灯箱 -->
+    <!-- 灯箱预览 -->
     <div id="lightbox" onclick="closeLightbox()">
         <img id="lightbox-img" src="" alt="">
         <div class="absolute top-12 right-12 micro-text cursor-pointer">Close ✕</div>
     </div>
 
-    <!-- 主页面容器 -->
     <div id="main-wrapper" class="px-8 py-20 md:px-24 md:py-40 lg:px-40">
         
-        <!-- 品牌头部 -->
         <header class="mb-32 md:mb-52 flex flex-col md:flex-row justify-between items-start">
             <div class="group cursor-default">
                 <h1 class="text-7xl md:text-9xl font-thin tracking-tighter leading-none mb-6 transition-all duration-1000 group-hover:tracking-normal">BUZZ</h1>
-                <p class="micro-text text-gray-400 ml-1">Digital Visualization Studio</p>
+                <p class="micro-text text-gray-400 ml-1 font-light">Digital Visualization Studio</p>
             </div>
             <nav class="mt-20 md:mt-4 flex flex-col gap-6 micro-text text-gray-400 text-right w-full md:w-auto">
-                <a href="#" class="nav-link text-gray-400 hover:text-black transition-colors inline-block ml-auto">Archive</a>
-                <a href="#" class="nav-link text-gray-400 hover:text-black transition-colors inline-block ml-auto">Information</a>
+                <a href="#" class="hover:text-black transition-colors">Archive</a>
+                <a href="#" class="hover:text-black transition-colors">Information</a>
                 <a href="mailto:office@buzzvisual.com" class="text-black font-medium mt-4">Contact —></a>
             </nav>
         </header>
 
-        <!-- 画廊主体 -->
         <main id="gallery" class="masonry-grid">
-            <!-- 图片由 JS 生成 -->
+            <!-- 图片将在这里动态生成 -->
         </main>
 
-        <!-- 页脚 -->
         <footer class="mt-64 mb-20 flex flex-col md:flex-row justify-between items-end gap-12">
             <div class="max-w-xl">
                 <p class="text-3xl font-extralight leading-tight text-gray-300">
@@ -205,93 +175,89 @@
     </div>
 
     <script>
-        // 更新图片总数为 64
         const IMAGE_COUNT = 64; 
         const gallery = document.getElementById('gallery');
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
+        
+        // 使用日期戳作为版本号，确保 GitHub/Vercel 部署后浏览器立即抓取新图
+        const version = Date.now(); 
 
         function startLoader() {
             let count = 0;
             const counter = document.getElementById('loader-percent');
-            
             const interval = setInterval(() => {
-                count += Math.floor(Math.random() * 12) + 1;
-                
+                count += Math.floor(Math.random() * 15) + 1;
                 if (count >= 100) {
                     count = 100;
                     clearInterval(interval);
-                    
                     setTimeout(() => {
                         document.getElementById('loader').style.transform = 'translateY(-100%)';
                         document.body.classList.add('loaded');
-                    }, 600);
+                    }, 500);
                 }
                 counter.innerText = count.toString().padStart(2, '0');
-            }, 60);
+            }, 50);
         }
 
         function initGallery() {
             for (let i = 1; i <= IMAGE_COUNT; i++) {
+                // 严格匹配文件名格式：1 (1).jpg
                 const fileName = `1 (${i}).jpg`;
                 const item = document.createElement('div');
                 item.className = 'masonry-item group cursor-zoom-in';
-                item.onclick = () => openLightbox(fileName);
-
-                // 格式化编号，小于10的补0
-                const refNum = i < 10 ? `0${i}` : i;
+                
+                const displayId = i < 10 ? `0${i}` : i;
+                
+                // 强制添加版本参数防止缓存旧图，并进行正确的 URL 编码
+                const finalSrc = encodeURI(fileName) + `?v=${version}`;
 
                 item.innerHTML = `
-                    <div class="zoom-container">
+                    <div class="zoom-container" onclick="openLightbox('${fileName}')">
                         <img 
-                            src="${encodeURIComponent(fileName)}" 
-                            alt="BV Ref ${i}"
+                            src="${finalSrc}" 
+                            alt="Archive Ref ${i}"
                             loading="lazy"
-                            onerror="handleImageError(this, '${fileName}')"
+                            onerror="handleLoadError(this, ${i})"
                         >
                     </div>
                     <div class="mt-5 flex items-center gap-4">
-                        <span class="micro-text text-gray-900 font-medium">Ref. ${refNum}</span>
+                        <span class="micro-text text-gray-900 font-medium">Ref. ${displayId}</span>
                         <div class="flex-grow h-[1px] bg-gray-100"></div>
-                        <span class="micro-text text-gray-300">Project</span>
+                        <span class="micro-text text-gray-300 italic">Jpg</span>
                     </div>
                 `;
                 gallery.appendChild(item);
             }
         }
 
+        function handleLoadError(img, id) {
+            // 如果某张图实在加载不出来，显示一个极简的占位符，保持排版不崩溃
+            const container = img.parentElement;
+            container.style.aspectRatio = "3/2";
+            container.classList.add('flex', 'items-center', 'justify-center', 'bg-[#f4f4f4]');
+            container.innerHTML = `<span class="micro-text text-gray-200">Ref. ${id} Pending</span>`;
+        }
+
         function openLightbox(src) {
-            lightboxImg.src = src;
+            lightboxImg.src = encodeURI(src) + `?v=${version}`;
             lightbox.style.display = 'flex';
-            void lightbox.offsetWidth;
-            lightbox.classList.add('active');
+            setTimeout(() => lightbox.classList.add('active'), 10);
             document.body.style.overflow = 'hidden';
         }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
-            setTimeout(() => {
-                if (!lightbox.classList.contains('active')) {
-                    lightbox.style.display = 'none';
-                }
-            }, 500);
+            setTimeout(() => { lightbox.style.display = 'none'; }, 400);
             document.body.style.overflow = 'auto';
         }
 
-        function handleImageError(img, name) {
-            const container = img.parentElement;
-            container.classList.add('aspect-[4/5]', 'flex', 'flex-col', 'items-center', 'justify-center', 'bg-[#f2f2f2]', 'text-gray-300');
-            container.innerHTML = `
-                <span class="micro-text mb-2">Syncing</span>
-                <span class="text-[8px] opacity-40">${name}</span>
-            `;
-        }
-
-        window.addEventListener('load', () => {
+        window.onload = () => {
             startLoader();
             initGallery();
-        });
+        };
 
+        // 按 ESC 键关闭预览
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeLightbox();
         });
