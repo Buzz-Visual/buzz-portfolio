@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Noto+Sans+SC:wght@100;300&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 调浅后的高级灰色背景 */
-            --bg-main: #f7f7f7; 
+            /* 极浅的高级灰色 */
+            --bg-main: #f9f9f9; 
             --text-main: #111111;
         }
 
@@ -19,32 +19,75 @@
             background-color: var(--bg-main);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
-            letter-spacing: -0.01em;
+            overflow-x: hidden;
         }
 
-        /* 瀑布流布局优化 */
+        /* --- 初始全屏首屏 (Hero Section) --- */
+        .hero {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* 昨天你喜欢的镜头缓慢拉近动画 */
+            animation: kenBurns 20s infinite alternate ease-in-out;
+            opacity: 0.7;
+        }
+
+        @keyframes kenBurns {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 200;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        /* --- 瀑布流画廊优化 --- */
         .masonry-grid {
             column-count: 1;
-            column-gap: 2.5rem;
+            column-gap: 3rem;
         }
         @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
         @media (min-width: 1280px) { .masonry-grid { column-count: 3; } }
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 4rem;
+            margin-bottom: 5rem;
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-            filter: grayscale(0.7);
+            filter: grayscale(0.8);
             opacity: 0.8;
         }
 
         .masonry-item:hover {
             filter: grayscale(0);
             opacity: 1;
-            transform: translateY(-8px);
+            transform: translateY(-10px);
         }
 
-        /* 镜头缩放动画核心逻辑 */
         .zoom-container {
             position: relative;
             overflow: hidden;
@@ -52,14 +95,14 @@
         }
 
         .zoom-container img {
-            transition: transform 8s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 超长平滑过渡 */
+            transition: transform 6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .masonry-item:hover .zoom-container img {
-            transform: scale(1.15); /* 模拟镜头缓慢推进 */
+            transform: scale(1.1);
         }
 
-        /* 灯箱样式 */
+        /* --- 灯箱 (Lightbox) --- */
         #lightbox {
             display: none;
             position: fixed;
@@ -67,33 +110,23 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(247, 247, 247, 0.99);
-            z-index: 1000;
+            background: rgba(249, 249, 249, 0.99);
+            z-index: 2000;
             justify-content: center;
             align-items: center;
             cursor: zoom-out;
-            opacity: 0;
-            transition: opacity 0.4s ease;
         }
 
-        #lightbox.active {
-            display: flex;
-            opacity: 1;
-        }
+        #lightbox.active { display: flex; animation: fadeIn 0.4s forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         #lightbox img {
             max-width: 90%;
             max-height: 85%;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.08);
-            transform: scale(0.98);
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.05);
         }
 
-        #lightbox.active img {
-            transform: scale(1);
-        }
-
-        /* 极小细节文字 */
         .micro-text {
             font-size: 9px;
             letter-spacing: 0.4em;
@@ -102,55 +135,62 @@
         }
 
         /* 隐藏滚动条 */
-        ::-webkit-scrollbar { width: 2px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #ddd; }
-
-        /* 入场动画 */
-        @keyframes reveal {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .reveal { animation: reveal 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        ::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
-<body class="px-8 py-12 md:px-20 md:py-24 lg:px-32">
+<body>
 
-    <!-- 灯箱容器 -->
+    <!-- 沉浸式灯箱 -->
     <div id="lightbox" onclick="closeLightbox()">
         <img id="lightbox-img" src="" alt="">
-        <div class="absolute bottom-12 micro-text text-gray-400">ESC or Click to exit</div>
+        <div class="absolute bottom-12 micro-text text-gray-400">Close / Click Anywhere</div>
     </div>
 
-    <!-- 极简大字头部 -->
-    <header class="mb-32 md:mb-52 flex flex-col md:flex-row justify-between items-end reveal">
-        <div>
-            <p class="micro-text text-gray-400 mb-6 ml-1">BUZZVISUAL STUDIO / ARCHIVE</p>
-            <h1 class="text-7xl md:text-9xl font-thin tracking-[ -0.05em] leading-none">BUZZ</h1>
-            <div class="h-1 w-12 bg-black mt-8"></div>
+    <!-- 首屏 Hero Section -->
+    <section class="hero">
+        <!-- 默认使用第一张作品作为背景 -->
+        <img src="1 (1).jpg" class="hero-bg" alt="Hero Background">
+        <div class="hero-content">
+            <p class="micro-text mb-6 opacity-60">Beyond Visualization</p>
+            <h2 class="hero-title">The Soul of<br>Material.</h2>
+            <div class="mt-12 flex justify-center">
+                <div class="w-px h-16 bg-white/30 animate-bounce"></div>
+            </div>
         </div>
-        <nav class="mt-16 md:mt-0 flex flex-wrap gap-x-12 gap-y-6 micro-text text-gray-400">
-            <a href="#" class="hover:text-black transition-colors">Works</a>
-            <a href="#" class="hover:text-black transition-colors">Information</a>
-            <a href="mailto:office@buzzvisual.com" class="text-black font-medium">Contact</a>
-        </nav>
-    </header>
+    </section>
 
-    <!-- 画廊主体 -->
-    <main id="gallery" class="masonry-grid reveal" style="animation-delay: 0.4s;">
-        <!-- 图片由 JS 动态生成 -->
-    </main>
+    <!-- 网页主体容器 -->
+    <div class="px-8 py-16 md:px-20 md:py-32 lg:px-32">
+        
+        <!-- 导航栏 -->
+        <header class="mb-32 md:mb-52 flex flex-col md:flex-row justify-between items-end">
+            <div>
+                <p class="micro-text text-gray-400 mb-6 ml-1">BUZZVISUAL STUDIO</p>
+                <h1 class="text-7xl md:text-9xl font-thin tracking-tighter leading-none">BUZZ</h1>
+            </div>
+            <nav class="mt-16 md:mt-0 flex flex-wrap gap-x-12 gap-y-6 micro-text text-gray-400">
+                <a href="#" class="hover:text-black transition-colors">Works</a>
+                <a href="#" class="hover:text-black transition-colors">Information</a>
+                <a href="mailto:office@buzzvisual.com" class="text-black font-medium">Contact</a>
+            </nav>
+        </header>
 
-    <!-- 页脚 -->
-    <footer class="mt-60 mb-16 pt-16 border-t border-gray-200 flex flex-col md:flex-row justify-between items-start gap-8">
-        <div class="max-w-md">
-            <h2 class="text-2xl font-light mb-4">Visualizing the future of architecture.</h2>
-            <p class="micro-text text-gray-400">Based in London / Serving Globally</p>
-        </div>
-        <div class="micro-text text-gray-400">
-            © 2024 BUZZVISUAL — ALL RIGHTS RESERVED
-        </div>
-    </footer>
+        <!-- 画廊主体 -->
+        <main id="gallery" class="masonry-grid">
+            <!-- 图片由 JS 动态生成 -->
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="mt-60 mb-16 pt-16 border-t border-gray-100 flex flex-col md:flex-row justify-between items-start gap-8">
+            <div class="max-w-md">
+                <h2 class="text-2xl font-light mb-4">Visualizing the future of architecture.</h2>
+                <p class="micro-text text-gray-400">London / Shanghai / Global</p>
+            </div>
+            <div class="micro-text text-gray-400">
+                © 2024 BUZZ — ALL RIGHTS RESERVED
+            </div>
+        </footer>
+    </div>
 
     <script>
         const IMAGE_COUNT = 20; 
@@ -160,6 +200,7 @@
 
         function initGallery() {
             for (let i = 1; i <= IMAGE_COUNT; i++) {
+                // 适配 1 (x).jpg 格式
                 const fileName = `1 (${i}).jpg`;
                 
                 const item = document.createElement('div');
@@ -170,18 +211,15 @@
                     <div class="zoom-container">
                         <img 
                             src="${encodeURIComponent(fileName)}" 
-                            alt="BuzzVisual Architecture ${i}"
+                            alt="Project ${i}"
                             class="w-full h-auto"
                             loading="lazy"
                             onerror="handleImageError(this, '${fileName}')"
                         >
-                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                     </div>
                     <div class="mt-8 flex justify-between items-baseline">
-                        <div class="overflow-hidden">
-                            <h3 class="micro-text text-gray-900 translate-y-0 transition-transform duration-500">BV.REF.0${i}</h3>
-                        </div>
-                        <span class="micro-text text-gray-300">2024</span>
+                        <h3 class="micro-text text-gray-900">BV.2024.P${i.toString().padStart(2, '0')}</h3>
+                        <span class="micro-text text-gray-300">Exterior</span>
                     </div>
                 `;
 
@@ -189,7 +227,6 @@
             }
         }
 
-        // 灯箱交互
         function openLightbox(src) {
             lightboxImg.src = src;
             lightbox.classList.add('active');
@@ -201,19 +238,16 @@
             document.body.style.overflow = 'auto';
         }
 
-        // 错误占位
         function handleImageError(img, name) {
             img.parentElement.innerHTML = `
-                <div class="py-40 flex flex-col items-center justify-center bg-gray-100/50">
-                    <span class="micro-text text-gray-300 mb-2">Image Processing</span>
-                    <span class="micro-text text-gray-200 text-[8px]">${name}</span>
+                <div class="py-40 flex items-center justify-center bg-gray-50 border border-gray-100">
+                    <span class="micro-text text-gray-300">Syncing ${name}</span>
                 </div>
             `;
         }
 
         window.addEventListener('load', initGallery);
 
-        // ESC 关闭
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeLightbox();
         });
