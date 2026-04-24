@@ -68,31 +68,33 @@
             break-inside: avoid;
             margin-bottom: 6rem;
             transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
-            /* 移除了灰度滤镜，保留透明度呼吸感 */
-            opacity: 0.85;
+            /* 默认原彩显示 */
+            opacity: 1;
         }
 
         .masonry-item:hover {
-            opacity: 1;
-            transform: translateY(-15px);
+            /* 悬停时产生轻微的视觉变化 */
+            opacity: 0.8;
+            transform: translateY(-10px);
         }
 
         .zoom-container {
             position: relative;
             overflow: hidden;
             background: var(--accent);
-            aspect-ratio: 4 / 5;
+            /* 移除了固定比例 aspect-ratio，允许根据图片原比例排版 */
         }
 
         .zoom-container img {
             width: 100%;
-            height: 100%;
+            height: auto;
+            display: block;
             object-fit: cover;
             transition: transform 8s cubic-bezier(0.2, 0, 0.2, 1);
         }
 
         .masonry-item:hover .zoom-container img {
-            transform: scale(1.12);
+            transform: scale(1.08);
         }
 
         /* --- 横线动效 --- */
@@ -114,7 +116,7 @@
             width: 100%;
         }
 
-        /* --- 灯箱优化 (Lightbox Fade In/Out) --- */
+        /* --- 灯箱优化 --- */
         #lightbox {
             display: none;
             position: fixed;
@@ -176,7 +178,6 @@
         <!-- 品牌头部 -->
         <header class="mb-32 md:mb-52 flex flex-col md:flex-row justify-between items-start">
             <div class="group cursor-default">
-                <!-- 调整后尺寸的 Logo -->
                 <h1 class="text-7xl md:text-9xl font-thin tracking-tighter leading-none mb-6 transition-all duration-1000 group-hover:tracking-normal">BUZZ</h1>
                 <p class="micro-text text-gray-400 ml-1">Digital Visualization Studio</p>
             </div>
@@ -244,15 +245,14 @@
                         <img 
                             src="${encodeURIComponent(fileName)}" 
                             alt="BV Ref ${i}"
-                            class="w-full h-auto"
                             loading="lazy"
                             onerror="handleImageError(this, '${fileName}')"
                         >
                     </div>
-                    <div class="mt-10 flex items-center gap-4">
+                    <div class="mt-8 flex items-center gap-4">
                         <span class="micro-text text-gray-900 font-medium">Ref. 0${i}</span>
                         <div class="flex-grow h-[1px] bg-gray-100"></div>
-                        <span class="micro-text text-gray-300">2024</span>
+                        <span class="micro-text text-gray-300">Project</span>
                     </div>
                 `;
                 gallery.appendChild(item);
@@ -262,7 +262,6 @@
         function openLightbox(src) {
             lightboxImg.src = src;
             lightbox.style.display = 'flex';
-            // 强制回流以触发 transition
             void lightbox.offsetWidth;
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -270,7 +269,6 @@
 
         function closeLightbox() {
             lightbox.classList.remove('active');
-            // 等待动画结束后隐藏
             setTimeout(() => {
                 if (!lightbox.classList.contains('active')) {
                     lightbox.style.display = 'none';
@@ -280,11 +278,11 @@
         }
 
         function handleImageError(img, name) {
-            img.parentElement.innerHTML = `
-                <div class="w-full h-full min-h-[450px] flex flex-col items-center justify-center bg-[#f2f2f2] text-gray-300">
-                    <span class="micro-text mb-2">Syncing</span>
-                    <span class="text-[8px] opacity-40">${name}</span>
-                </div>
+            const container = img.parentElement;
+            container.classList.add('aspect-[4/5]', 'flex', 'flex-col', 'items-center', 'justify-center', 'bg-[#f2f2f2]', 'text-gray-300');
+            container.innerHTML = `
+                <span class="micro-text mb-2">Syncing</span>
+                <span class="text-[8px] opacity-40">${name}</span>
             `;
         }
 
