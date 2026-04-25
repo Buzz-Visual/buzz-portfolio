@@ -177,7 +177,7 @@
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- 唯一的滚动控制条 -->
+    <!-- 唯一的滚动控制条 (粗控制杆) -->
     <div id="scroll-handle" title="上下拖动控制滚动"></div>
 
     <!-- Lightbox -->
@@ -394,7 +394,7 @@
                 });
             });
 
-            // 等待所有任务完成（虽然已经在 onload 里实时插入了）
+            // 等待所有任务完成
             await Promise.all(loadTasks);
         }
 
