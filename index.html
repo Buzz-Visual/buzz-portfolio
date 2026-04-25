@@ -3,307 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUZZ VISUAL | Portfolio</title>
+    <title>BUZZ | Architectural Visualization</title>
+    
+    <!-- 浏览器标签页图标 -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Noto+Sans+SC:wght@100;300&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
-
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --accent-color: #f0f0f0;
+            --bg-main: #fcfcfc; 
+            --text-main: #111111;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow-x: hidden;
-            margin: 0;
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* 加载动画 */
+        /* --- 加载动画 --- */
         #loader {
             position: fixed;
             inset: 0;
             background: #000;
-            z-index: 100;
+            z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #fff;
-            transition: opacity 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+            color: white;
+            transition: opacity 1s ease-out;
         }
 
-        .loader-num {
-            font-size: 5vw;
-            font-weight: 300;
+        /* --- LOGO 拉伸动效 --- */
+        .logo-buzz {
+            transition: letter-spacing 1.2s cubic-bezier(0.19, 1, 0.22, 1);
             letter-spacing: -0.05em;
         }
-
-        /* 导航栏 - BUZZ 交互 */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 2rem;
-            z-index: 50;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            mix-blend-mode: difference;
-            color: white;
+        .logo-buzz:hover {
+            letter-spacing: 0.2em;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 500;
-            letter-spacing: 0em;
-            transition: letter-spacing 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            cursor: pointer;
-        }
-
-        .logo:hover {
-            letter-spacing: 0.8em;
-            margin-right: -0.8em; /* 补偿拉伸带来的偏移 */
-        }
-
-        .nav-links a {
+        /* --- 导航栏横线动效 --- */
+        .nav-link {
             position: relative;
-            margin-left: 2rem;
-            text-decoration: none;
-            font-size: 0.9rem;
-            text-transform: uppercase;
+            padding-bottom: 4px;
         }
-
-        .nav-links a::after {
+        .nav-link::after {
             content: '';
             position: absolute;
-            bottom: -5px;
-            left: 50%;
             width: 0;
             height: 1px;
-            background: currentColor;
-            transition: all 0.4s ease;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--text-main);
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
             transform: translateX(-50%);
         }
-
-        .nav-links a:hover::after {
+        .nav-link:hover::after {
             width: 100%;
         }
 
-        /* 杂志排版栅格系统 */
-        .grid-container {
+        /* --- 杂志感栅格系统 (匹配比例版) --- */
+        .editorial-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: 10vh; /* 基础行高单位 */
-            gap: 1.5rem;
-            padding: 8rem 2rem 4rem 2rem;
-            max-width: 1600px;
-            margin: 0 auto;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            align-items: start; /* 顶部对齐，允许高度不一 */
         }
 
-        /* 响应式降级为2列 */
-        @media (max-width: 1024px) {
-            .grid-container {
-                grid-template-columns: repeat(2, 1fr);
+        @media (min-width: 1024px) {
+            .editorial-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 3rem;
             }
         }
 
         .grid-item {
             position: relative;
             overflow: hidden;
-            background: var(--accent-color);
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
+            background: transparent; /* 去掉背景色，突出图片本身比例 */
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            display: flex;
+            flex-direction: column;
         }
 
-        .grid-item.visible {
-            opacity: 1;
-            transform: translateY(0);
+        /* 重点图片跨列设置 */
+        @media (min-width: 1024px) {
+            .grid-item.featured {
+                grid-column: span 2; /* 大图占两列宽，高度随比例自适应 */
+            }
+            /* 竖构图不再强制 span 2 行，而是由图片比例自然决定 */
         }
-
-        /* 不同比例的画框定义 */
-        .item-normal { grid-row: span 4; } /* 4:5 左右的比例 */
-        .item-featured { grid-column: span 2; grid-row: span 8; } /* 2x2 大图 */
-        .item-tall { grid-row: span 8; } /* 1x2 竖长图 */
 
         .grid-item img {
             width: 100%;
-            height: 100%;
-            object-fit: cover; /* 保证画框不乱的核心 */
-            transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-            cursor: zoom-in;
+            height: auto; /* 关键：高度自动，匹配比例 */
+            display: block;
+            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
         .grid-item:hover img {
-            transform: scale(1.05);
+            transform: scale(1.03);
         }
 
-        /* 灯箱预览 */
+        .item-info {
+            margin-top: 0.75rem;
+            color: var(--text-main);
+            opacity: 0.4;
+            transition: opacity 0.4s ease;
+        }
+
+        .grid-item:hover .item-info {
+            opacity: 1;
+        }
+
         #lightbox {
+            display: none;
             position: fixed;
             inset: 0;
-            background: rgba(255,255,255,0.98);
-            z-index: 1000;
-            display: none;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 2000;
             justify-content: center;
             align-items: center;
-            padding: 2rem;
             cursor: zoom-out;
         }
 
-        #lightbox img {
-            max-width: 90%;
-            max-height: 90vh;
-            object-fit: contain;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1);
+        .micro-text {
+            font-size: 10px;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
         }
 
-        .footer {
-            padding: 4rem 2rem;
-            text-align: center;
-            font-size: 0.8rem;
-            opacity: 0.5;
-            letter-spacing: 0.1em;
-        }
+        ::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body>
 
-    <!-- 加载层 -->
     <div id="loader">
-        <div class="loader-num" id="loaderPercent">00</div>
+        <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- 导航 -->
-    <nav>
-        <div class="logo">BUZZ</div>
-        <div class="nav-links">
-            <a href="#">Gallery</a>
-            <a href="#">Studio</a>
-            <a href="#">Contact</a>
-        </div>
-    </nav>
+    <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
+        <img id="lightbox-img" class="max-w-[90%] max-h-[90%] object-contain shadow-2xl" src="">
+        <div class="absolute top-12 right-12 micro-text">Close ✕</div>
+    </div>
 
-    <!-- 主展示区 -->
-    <main class="grid-container" id="mainGrid">
-        <!-- JS 动态注入 -->
-    </main>
+    <div id="main-wrapper" class="p-6 md:p-12 lg:p-20">
+        
+        <header class="mb-32 flex flex-col md:flex-row justify-between items-baseline">
+            <div>
+                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4 cursor-default">BUZZ</h1>
+                <p class="micro-text text-gray-400">Architectural Visualization / Works</p>
+            </div>
+            <nav class="mt-8 md:mt-0 flex gap-12 micro-text">
+                <a href="#" class="nav-link">Gallery</a>
+                <a href="#" class="nav-link">Studio</a>
+                <a href="mailto:office@buzzvisual.com" class="nav-link font-bold">Contact</a>
+            </nav>
+        </header>
 
-    <footer class="footer">
-        © BUZZ VISUAL. ALL RIGHTS RESERVED.
-    </footer>
+        <main id="gallery" class="editorial-grid">
+            <!-- 脚本生成内容 -->
+        </main>
 
-    <!-- 灯箱 -->
-    <div id="lightbox" onclick="closeLightbox()">
-        <img id="lightboxImg" src="" alt="Full View">
+        <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-300">
+            <span>BUZZ VISUAL STUDIO</span>
+            <span>© 2024</span>
+        </footer>
     </div>
 
     <script>
-        // 配置：图片序列 (IMAGE_ORDER)
+        // 遵循固定排序数组
         const IMAGE_ORDER = [
-            "1 (1).jpg", "1 (2).jpg", "1 (3).jpg", "1 (4).jpg", "1 (5).jpg",
-            "1 (6).jpg", "1 (7).jpg", "1 (8).jpg", "1 (9).jpg", "1 (10).jpg",
-            "1 (11).jpg", "1 (12).jpg", "1 (13).jpg", "1 (14).jpg", "1 (15).jpg",
-            "1 (16).jpg", "1 (17).jpg", "1 (18).jpg", "1 (19).jpg", "1 (20).jpg"
+            1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
+            17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
+            37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
+            56, 58, 59, 60, 61, 62, 63, 64
         ];
 
-        // 模拟资源加载
-        function initLoader() {
-            let percent = 0;
-            const loader = document.getElementById('loader');
-            const num = document.getElementById('loaderPercent');
-            
-            const timer = setInterval(() => {
-                percent += Math.floor(Math.random() * 5) + 1;
-                if (percent >= 100) {
-                    percent = 100;
-                    clearInterval(timer);
+        const gallery = document.getElementById('gallery');
+        const version = Date.now();
+
+        function startLoader() {
+            let count = 0;
+            const counter = document.getElementById('loader-percent');
+            const interval = setInterval(() => {
+                count += Math.floor(Math.random() * 20) + 1;
+                if (count >= 100) {
+                    count = 100;
+                    clearInterval(interval);
                     setTimeout(() => {
-                        loader.style.opacity = '0';
-                        setTimeout(() => loader.style.display = 'none', 800);
-                        revealGrid();
-                    }, 500);
+                        document.getElementById('loader').style.opacity = '0';
+                        setTimeout(() => document.getElementById('loader').remove(), 1000);
+                    }, 400);
                 }
-                num.innerText = percent.toString().padStart(2, '0');
-            }, 30);
+                counter.innerText = count.toString().padStart(2, '0');
+            }, 60);
         }
 
-        // 生成 Grid 内容
-        function generateGrid() {
-            const container = document.getElementById('mainGrid');
-            const version = new Date().getTime(); // 防止缓存
-
-            IMAGE_ORDER.forEach((fileName, index) => {
+        function initGallery() {
+            IMAGE_ORDER.forEach((imgId, index) => {
+                const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
-                item.className = 'grid-item';
                 
-                // 杂志感逻辑分配
-                if (index === 0) {
-                    item.classList.add('item-featured'); // 第一张 2x2
-                } else if ((index + 1) % 6 === 0) {
-                    item.classList.add('item-tall');     // 每6张一个竖长
-                } else if (index > 0 && index % 15 === 0) {
-                    item.classList.add('item-featured'); // 每15张一个大图
-                } else {
-                    item.classList.add('item-normal');   // 默认
+                let classes = ['grid-item', 'cursor-pointer'];
+                
+                // 杂志节奏：决定宽度
+                if (index === 0 || index % 15 === 0) {
+                    classes.push('featured'); // 占两列宽，高度按比例
                 }
-
-                // 处理带空格的文件名并生成图片路径
-                const safeName = encodeURIComponent(fileName);
-                const img = document.createElement('img');
-                img.src = `https://images.unsplash.com/photo-${1500000000000 + index}?auto=format&fit=crop&w=1200&q=80&v=${version}`; 
-                // 提示：此处 Unsplash 链接仅为演示占位，实际部署时请替换为你的相对路径如 `./images/${safeName}?v=${version}`
                 
-                img.alt = fileName;
-                img.loading = "lazy";
-                img.onclick = (e) => openLightbox(img.src);
+                item.className = classes.join(' ');
+                
+                const encodedFileName = encodeURIComponent(fileName);
+                const finalSrc = `${encodedFileName}?v=${version}`;
 
-                item.appendChild(img);
-                container.appendChild(item);
+                item.onclick = () => {
+                    document.getElementById('lightbox-img').src = finalSrc;
+                    document.getElementById('lightbox').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                };
+
+                // 不再使用混合模式，直接在下方展示微缩文字，更像摄影集排版
+                item.innerHTML = `
+                    <img src="${finalSrc}" alt="Project ${imgId}" loading="lazy" onerror="this.parentElement.style.display='none'">
+                    <div class="item-info micro-text">
+                        Ref. ${imgId < 10 ? '0'+imgId : imgId}
+                    </div>
+                `;
+                gallery.appendChild(item);
             });
         }
 
-        // 滚动揭示动画
-        function revealGrid() {
-            const items = document.querySelectorAll('.grid-item');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            items.forEach(item => observer.observe(item));
-        }
-
-        // 灯箱逻辑
-        function openLightbox(src) {
-            const lb = document.getElementById('lightbox');
-            const img = document.getElementById('lightboxImg');
-            img.src = src;
-            lb.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
-            document.getElementById('lightbox').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        // ESC 键退出
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") closeLightbox();
-        });
-
-        // 初始化
         window.onload = () => {
-            generateGrid();
-            initLoader();
+            startLoader();
+            initGallery();
         };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('lightbox').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
     </script>
 </body>
 </html>
