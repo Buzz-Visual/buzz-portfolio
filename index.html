@@ -25,7 +25,7 @@
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            /* 恢复系统默认滚动条显示，但优化样式 */
+            /* 优化系统默认滚动条样式 */
             scrollbar-width: thin;
             scrollbar-color: rgba(0,0,0,0.2) transparent;
         }
@@ -112,7 +112,6 @@
             cursor: pointer;
             width: 100%;
             overflow: hidden; 
-            min-height: 100px;
         }
 
         .grid-item::after {
@@ -298,7 +297,7 @@
             }, 60);
         }
 
-        // --- 动态列平衡加载逻辑 ---
+        // --- 优化后的并行加载与动态平衡逻辑 ---
         async function initGallery() {
             const columnElements = [
                 document.getElementById('col-0'), 
@@ -308,52 +307,81 @@
             const isMobile = window.innerWidth < 1024;
             const colCount = isMobile ? 2 : 3;
             
-            // 记录每一列的当前高度
+            // 记录每一列的当前高度比例总和
             let colHeights = new Array(colCount).fill(0);
 
             if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            // 必须严格按顺序处理，以保证分配逻辑的确定性
-            for (const imgId of IMAGE_ORDER) {
+            // 我们将所有图片的 Promise 存入数组，并发执行
+            const loadPromises = IMAGE_ORDER.map((imgId) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
                 
-                await new Promise((resolve) => {
+                return new Promise((resolve) => {
                     const img = new Image();
                     img.src = finalSrc;
                     
-                    img.onload = () => {
-                        // 寻找当前最短的列索引
-                        let minHeightIndex = 0;
-                        let minHeight = colHeights[0];
-                        for (let i = 1; i < colCount; i++) {
-                            if (colHeights[i] < minHeight) {
-                                minHeight = colHeights[i];
-                                minHeightIndex = i;
+                    // 当获取到图片基本信息（宽高）时即开始排版，无需等待整张图下载完
+                    const checkSize = () => {
+                        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                            // 寻找当前最短的列
+                            let minHeightIndex = 0;
+                            let minHeight = colHeights[0];
+                            for (let i = 1; i < colCount; i++) {
+                                if (colHeights[i] < minHeight) {
+                                    minHeight = colHeights[i];
+                                    minHeightIndex = i;
+                                }
                             }
+
+                            const targetColumn = columnElements[minHeightIndex];
+                            const item = document.createElement('div');
+                            item.className = 'grid-item';
+                            
+                            // 保持占位比例，防止排版抖动
+                            const ratio = (img.naturalHeight / img.naturalWidth) * 100;
+                            item.style.paddingBottom = `${ratio}%`;
+                            
+                            item.onclick = () => {
+                                document.getElementById('lightbox-img').src = finalSrc;
+                                document.getElementById('lightbox').style.display = 'flex';
+                                document.body.style.overflow = 'hidden';
+                            };
+
+                            // 图片样式处理
+                            img.style.position = 'absolute';
+                            img.style.top = '0';
+                            img.style.left = '0';
+                            img.classList.add('loaded');
+                            
+                            item.appendChild(img);
+                            targetColumn.appendChild(item);
+
+                            // 更新该列高度
+                            colHeights[minHeightIndex] += (img.naturalHeight / img.naturalWidth);
+                            
+                            resolve();
+                            return true;
                         }
-
-                        const targetColumn = columnElements[minHeightIndex];
-                        const item = document.createElement('div');
-                        item.className = 'grid-item';
-                        item.onclick = () => {
-                            document.getElementById('lightbox-img').src = finalSrc;
-                            document.getElementById('lightbox').style.display = 'flex';
-                            document.body.style.overflow = 'hidden';
-                        };
-
-                        img.classList.add('loaded');
-                        item.appendChild(img);
-                        targetColumn.appendChild(item);
-
-                        // 更新高度比例（高度 / 宽度）
-                        colHeights[minHeightIndex] += (img.naturalHeight / img.naturalWidth);
-                        
-                        resolve();
+                        return false;
                     };
 
-                    img.onerror = () => resolve(); // 跳过错误图片
+                    if (!checkSize()) {
+                        img.onload = checkSize;
+                        // 备用方案：定时轮询尺寸获取（有些浏览器即使没完全下载也能提前拿到尺寸）
+                        const interval = setInterval(() => {
+                            if (checkSize()) clearInterval(interval);
+                        }, 50);
+                    }
+                    
+                    img.onerror = () => resolve(); 
                 });
+            });
+
+            // 所有的 Promise 同时启动，不需要 await 其中某一个
+            // 但为了保证整体顺序一致，我们按数组索引依次处理这些 Promise
+            for (const promise of loadPromises) {
+                await promise;
             }
         }
 
