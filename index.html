@@ -190,12 +190,41 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* 布局锁定工具样式 */
+        #layout-tool {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #000;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        #layout-tool:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
+    </div>
+
+    <!-- 顺序锁定辅助工具 -->
+    <div id="layout-tool" onclick="copyCurrentOrder()">
+        <span>COPY CURRENT ORDER</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
     </div>
 
     <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
@@ -319,9 +348,9 @@
     <script>
         /**
          * 锁定顺序指南：
-         * 1. 刷新页面直到看到满意的图片排列。
-         * 2. 打开控制台（F12 -> Console），复制 [CURRENT ORDER] 后的数组。
-         * 3. 将数组粘贴到下方的 IMAGE_ORDER 中。
+         * 1. 刷新页面，直到看到满意的图片排列。
+         * 2. 点击右下角的 [COPY CURRENT ORDER] 按钮。
+         * 3. 数组已自动复制到剪贴板，请将其粘贴到下方的 IMAGE_ORDER 中。
          * 4. 注释掉 initGallery 函数中的 shuffleArray(IMAGE_ORDER); 这一行。
          */
         let IMAGE_ORDER = [
@@ -336,6 +365,24 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
+        }
+
+        // 复制功能
+        function copyCurrentOrder() {
+            const orderStr = JSON.stringify(IMAGE_ORDER);
+            const el = document.createElement('textarea');
+            el.value = orderStr;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            console.log("[CURRENT ORDER COPIED]:", orderStr);
+            
+            const btn = document.getElementById('layout-tool');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "<span>COPIED TO CLIPBOARD!</span>";
+            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
         }
 
         const version = Date.now();
@@ -417,14 +464,9 @@
                 if (col2) col2.style.display = 'none';
             }
 
-            // 1. 先进行随机洗牌（如果要锁定，请注释掉下面这一行）
+            // --- 随机洗牌 ---
+            // 如果你想锁定当前顺序，请把下面这一行注释掉 (前面加 //)
             shuffleArray(IMAGE_ORDER);
-
-            // 2. 将当前生成的顺序打印到控制台，方便你记录
-            console.log("--- BUZZ LAYOUT TOOL ---");
-            console.log("如果您满意当前的图片排列，请复制下方的数组并更新代码中的 IMAGE_ORDER:");
-            console.log("[CURRENT ORDER]:", JSON.stringify(IMAGE_ORDER));
-            console.log("------------------------");
 
             IMAGE_ORDER.forEach((imgId, index) => {
                 const colIndex = index % colCount;
