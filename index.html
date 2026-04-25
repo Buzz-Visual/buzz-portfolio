@@ -93,7 +93,7 @@
             overflow: hidden; 
         }
 
-        /* 鼠标悬停时的白色蒙版效果 - 全覆盖 & 透明度 0.1 */
+        /* 鼠标悬停时的白色蒙版效果 */
         .grid-item::after {
             content: '';
             position: absolute;
@@ -157,6 +157,14 @@
         }
 
         ::-webkit-scrollbar { width: 0px; }
+        
+        .social-icon {
+            transition: opacity 0.3s ease;
+            opacity: 0.3;
+        }
+        .social-icon:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -180,7 +188,7 @@
             <nav class="mt-8 md:mt-0 flex gap-12 micro-text">
                 <a onclick="showPage('gallery')" class="nav-link">Gallery</a>
                 <a onclick="showPage('studio')" class="nav-link">Studio</a>
-                <a href="mailto:office@buzzvisual.com" class="nav-link font-bold">Contact</a>
+                <a href="mailto:info.buzzvisual@gmail.com" class="nav-link font-bold">Contact</a>
             </nav>
         </header>
 
@@ -193,7 +201,7 @@
             </div>
         </main>
 
-        <!-- Studio 介绍页面 (更新为图片中的内容) -->
+        <!-- Studio 介绍页面 -->
         <main id="studio-page" class="page-content hidden-page">
             <div class="max-w-3xl">
                 <h2 class="text-3xl font-normal mb-16 tracking-tight">Architecture, art, life</h2>
@@ -211,22 +219,67 @@
                         Art is the product of spiritual perception and the bridge of soul communication. This is our life and the difference between our life and other carbon based organisms.
                     </p>
 
-                    <div class="pt-20 grid grid-cols-2 gap-12 micro-text text-gray-400">
-                        <div>
-                            <p class="mb-3 text-black">Services</p>
-                            <p>Stills / Animation / VR</p>
+                    <!-- 联系与付款信息区域 -->
+                    <div class="pt-20 grid grid-cols-1 md:grid-cols-2 gap-16 micro-text text-gray-400">
+                        <div class="space-y-8">
+                            <div>
+                                <p class="mb-3 text-black text-xs">Email</p>
+                                <p>info.buzzvisual@gmail.com</p>
+                            </div>
+                            <div>
+                                <p class="mb-3 text-black text-xs">Wechat</p>
+                                <p>18201756846</p>
+                            </div>
+                            <div>
+                                <p class="mb-3 text-black text-xs">Call</p>
+                                <p class="mb-1">+86 18201756846 (Mainland)</p>
+                                <p>+852 44638739 (Hong Kong)</p>
+                            </div>
+                            <div>
+                                <p class="mb-3 text-black text-xs">Location</p>
+                                <p>Shanghai, China</p>
+                            </div>
+                            <div>
+                                <p class="mb-3 text-black text-xs">Follow Us</p>
+                                <div class="flex gap-4">
+                                    <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="hover:text-black">Instagram</a>
+                                    <a href="https://www.behance.net/405654359b463" target="_blank" class="hover:text-black">Behance</a>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p class="mb-3 text-black">Contact</p>
-                            <p>office@buzzvisual.com</p>
+
+                        <div class="space-y-8">
+                            <div>
+                                <p class="mb-3 text-black text-xs">Services</p>
+                                <p>Stills / Animation / VR</p>
+                            </div>
+                            <div>
+                                <p class="mb-3 text-black text-xs">Payment Terms</p>
+                                <p class="leading-loose">
+                                    50% Deposit / 50% Final balance<br>
+                                    Accept Bank Transfer / WeChat Pay
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
 
-        <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-300">
-            <span>BUZZ VISUAL STUDIO</span>
+        <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300">
+            <div class="flex items-center gap-8">
+                <span>BUZZ VISUAL STUDIO</span>
+                <div class="flex gap-4">
+                    <!-- Instagram Icon -->
+                    <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                    <!-- Behance Icon -->
+                    <a href="https://www.behance.net/405654359b463" target="_blank" class="social-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"/><path d="M3 13a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3"/><path d="M3 9h9"/><path d="M14 12h7a3.5 3.5 0 0 0-7 0z"/><path d="M14 9h7"/></svg>
+                    </a>
+                </div>
+            </div>
             <span>© 2024</span>
         </footer>
     </div>
@@ -287,15 +340,19 @@
                 document.getElementById('col-2')
             ];
 
-            if (window.innerWidth < 1024) {
+            const isMobile = window.innerWidth < 1024;
+            const colCount = isMobile ? 2 : 3;
+
+            if (isMobile) {
                 const col2 = document.getElementById('col-2');
                 if (col2) col2.style.display = 'none';
             }
 
             IMAGE_ORDER.forEach((imgId, index) => {
-                const colCount = window.innerWidth < 1024 ? 2 : 3;
                 const colIndex = index % colCount;
                 const targetColumn = columns[colIndex];
+
+                if (!targetColumn) return;
 
                 const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
