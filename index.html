@@ -16,6 +16,7 @@
             --bg-main: #fcfcfc; 
             --text-main: #111111;
             --grid-gap: 1.5rem; 
+            --side-padding: 5rem;
         }
 
         body {
@@ -23,7 +24,12 @@
             background-color: var(--bg-main);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            /* 隐藏原生滚动条，使用自定义拖拽条 */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
+        body::-webkit-scrollbar { display: none; }
 
         /* --- 加载动画 --- */
         #loader {
@@ -68,7 +74,7 @@
             width: 100%;
         }
 
-        /* --- 稳定的瀑布流布局 --- */
+        /* --- 瀑布流布局 --- */
         .masonry-container {
             display: flex;
             gap: var(--grid-gap);
@@ -93,39 +99,29 @@
             overflow: hidden; 
         }
 
-        /* 悬停时的白色蒙版覆盖 - 已减弱 */
         .grid-item::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: rgba(255, 255, 255, 0.1); /* 极淡的白色蒙版 */
+            background: rgba(255, 255, 255, 0.1); 
             opacity: 0;
             transition: opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1);
             z-index: 10;
         }
 
-        .grid-item:hover::after {
-            opacity: 1;
-        }
+        .grid-item:hover::after { opacity: 1; }
 
         .grid-item img {
             width: 100%;
             height: auto;
             display: block;
             opacity: 0;
-            transition: 
-                opacity 0.8s ease, 
-                transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            transition: opacity 0.8s ease, transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
             z-index: 5;
         }
 
-        .grid-item img.loaded {
-            opacity: 1;
-        }
-
-        .grid-item:hover img.loaded {
-            transform: scale(1.03);
-        }
+        .grid-item img.loaded { opacity: 1; }
+        .grid-item:hover img.loaded { transform: scale(1.03); }
 
         #lightbox {
             display: none;
@@ -145,54 +141,43 @@
             text-transform: uppercase;
         }
 
-        /* 页面切换动画 */
-        .page-content {
-            transition: opacity 0.8s ease;
-        }
-        .hidden-page {
-            display: none;
-            opacity: 0;
-        }
+        .page-content { transition: opacity 0.8s ease; }
+        .hidden-page { display: none; opacity: 0; }
 
-        ::-webkit-scrollbar { width: 0px; }
-        
-        .social-icon {
-            transition: opacity 0.3s ease;
-            opacity: 0.3;
-        }
-        .social-icon:hover {
-            opacity: 1;
-        }
-
-        /* 联系信息区域 */
-        #contact-section {
-            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        #contact-section.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* 隐藏布局工具按钮 */
-        #layout-tool {
+        /* --- 右侧垂直滚动拖拽条 --- */
+        #scroll-track {
             position: fixed;
+            right: 15px;
+            top: 20px;
             bottom: 20px;
-            right: 20px;
+            width: 2px;
+            background: rgba(0,0,0,0.03);
+            z-index: 4000;
+        }
+        
+        #scroll-handle {
+            position: absolute;
+            left: -1px; /* 居中于轨道 */
+            top: 0;
+            width: 4px;
+            height: 60px; /* 固定高度的滑块 */
+            background: #333;
+            border-radius: 2px;
+            cursor: ns-resize;
+            transition: background 0.3s, width 0.2s, left 0.2s;
+        }
+        
+        #scroll-handle:hover, #scroll-handle.dragging {
             background: #000;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 4px;
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            cursor: pointer;
-            z-index: 5000;
-            display: none; /* 修改为隐藏，如需再次使用请改为 flex */
-            align-items: center;
-            gap: 8px;
-            opacity: 0.6;
-            transition: opacity 0.3s;
+            width: 6px;
+            left: -2px;
+        }
+
+        #main-wrapper {
+            padding-left: var(--side-padding);
+            padding-right: var(--side-padding);
+            padding-top: 5rem;
+            padding-bottom: 5rem;
         }
     </style>
 </head>
@@ -202,20 +187,18 @@
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- 顺序锁定辅助工具 (已默认隐藏) -->
-    <div id="layout-tool" onclick="copyCurrentOrder()">
-        <span>COPY CURRENT ORDER</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+    <!-- 垂直滚动控制条 -->
+    <div id="scroll-track">
+        <div id="scroll-handle" title="上下拖动控制滚动"></div>
     </div>
 
-    <!-- Lightbox: 移除了下方的文字 p 标签 -->
+    <!-- Lightbox -->
     <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
         <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-0" src="">
         <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity">Close ✕</div>
     </div>
 
-    <div id="main-wrapper" class="p-6 md:p-12 lg:p-20">
-        
+    <div id="main-wrapper">
         <header class="mb-32 flex flex-col md:flex-row justify-between items-baseline">
             <div class="cursor-pointer" onclick="showPage('gallery')">
                 <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
@@ -237,21 +220,14 @@
             </div>
         </main>
 
-        <!-- Studio 介绍页面 -->
+        <!-- Studio 页面 -->
         <main id="studio-page" class="page-content hidden-page">
             <div class="max-w-3xl">
                 <h2 class="text-3xl font-normal mb-16 tracking-tight text-black">Architecture, art, life</h2>
-                
                 <div class="space-y-12 text-lg font-light leading-relaxed text-gray-500">
-                    <p>
-                        The pleasure we get from the visual expression of architecture is like the indispensable source of life.
-                    </p>
-                    <p>
-                        For more than ten years, we have been exploring visual images that are more in line with the design expression, hoping to bring more sensory image presentation to the architects' design schemes.
-                    </p>
-                    <p>
-                        Art is the product of spiritual perception and the bridge of soul communication. This is our life and the difference between our life and other carbon based organisms.
-                    </p>
+                    <p>The pleasure we get from the visual expression of architecture is like the indispensable source of life.</p>
+                    <p>For more than ten years, we have been exploring visual images that are more in line with the design expression...</p>
+                    <p>Art is the product of spiritual perception and the bridge of soul communication.</p>
                 </div>
             </div>
         </main>
@@ -260,91 +236,68 @@
         <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
             <div class="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-20 micro-text text-gray-400">
                 <div class="space-y-10">
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Email</p>
-                        <a href="mailto:info.buzzvisual@gmail.com" class="hover:text-black transition-colors">info.buzzvisual@gmail.com</a>
-                    </div>
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Wechat</p>
-                        <p class="text-gray-500">18201756846</p>
-                    </div>
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Call</p>
-                        <div class="space-y-2">
-                            <p>+86 18201756846 (Mainland)</p>
-                            <p>+852 44638739 (Hong Kong)</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Location</p>
-                        <p>Shanghai, China</p>
-                    </div>
-                </div>
-
-                <div class="space-y-10">
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Follow Us</p>
-                        <div class="flex flex-col gap-3">
-                            <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="hover:text-black flex items-center gap-2">
-                                Instagram ↗
-                            </a>
-                            <a href="https://www.behance.net/405654359b463" target="_blank" class="hover:text-black flex items-center gap-2">
-                                Behance ↗
-                            </a>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Services</p>
-                        <p>Stills / Animation / VR</p>
-                    </div>
-                    <div>
-                        <p class="mb-4 text-black text-xs font-bold">Payment Terms</p>
-                        <p class="leading-loose">
-                            50% Deposit / 50% Final balance<br>
-                            Accept Bank Transfer / WeChat Pay
-                        </p>
-                    </div>
+                    <div><p class="mb-4 text-black text-xs font-bold">Email</p><a href="mailto:info.buzzvisual@gmail.com" class="hover:text-black transition-colors">info.buzzvisual@gmail.com</a></div>
+                    <div><p class="mb-4 text-black text-xs font-bold">Wechat</p><p class="text-gray-500">18201756846</p></div>
                 </div>
             </div>
         </div>
 
         <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300">
-            <div class="flex items-center gap-8">
-                <span>BUZZ VISUAL STUDIO</span>
-                <div class="flex gap-4">
-                    <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                    </a>
-                    <a href="https://www.behance.net/405654359b463" target="_blank" class="social-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"/><path d="M3 13a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3"/><path d="M3 9h9"/><path d="M14 12h7a3.5 3.5 0 0 0-7 0z"/><path d="M14 9h7"/></svg>
-                    </a>
-                </div>
-            </div>
+            <span>BUZZ VISUAL STUDIO</span>
             <span>© 2024</span>
         </footer>
     </div>
 
     <script>
-        // 锁定的图片顺序
-        let IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
-
-        function copyCurrentOrder() {
-            const orderStr = JSON.stringify(IMAGE_ORDER);
-            const el = document.createElement('textarea');
-            el.value = orderStr;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            console.log("[CURRENT ORDER COPIED]:", orderStr);
-            const btn = document.getElementById('layout-tool');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "<span>COPIED!</span>";
-            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
-        }
-
+        const IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
         const version = Date.now();
 
+        // --- 垂直滚动拖拽逻辑 ---
+        const handle = document.getElementById('scroll-handle');
+        const track = document.getElementById('scroll-track');
+        let isDragging = false;
+
+        function updateHandlePosition() {
+            if (isDragging) return;
+            const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollCurrent = window.scrollY;
+            const trackHeight = track.clientHeight - handle.clientHeight;
+            const percentage = scrollCurrent / scrollTotal;
+            const topPos = percentage * trackHeight;
+            handle.style.top = `${Math.max(0, Math.min(topPos, trackHeight))}px`;
+        }
+
+        handle.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            handle.classList.add('dragging');
+            document.body.style.cursor = 'ns-resize';
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const trackRect = track.getBoundingClientRect();
+            let y = e.clientY - trackRect.top - (handle.clientHeight / 2);
+            const maxTop = track.clientHeight - handle.clientHeight;
+            
+            y = Math.max(0, Math.min(y, maxTop));
+            handle.style.top = `${y}px`;
+
+            // 同步页面滚动
+            const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollTarget = (y / maxTop) * scrollTotal;
+            window.scrollTo(0, scrollTarget);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            handle.classList.remove('dragging');
+            document.body.style.cursor = 'default';
+        });
+
+        window.addEventListener('scroll', updateHandlePosition);
+
+        // --- 基础页面功能 ---
         function hideContact() {
             const contactSection = document.getElementById('contact-section');
             if (contactSection) {
@@ -383,6 +336,7 @@
                     studioPage.classList.add('hidden-page');
                     galleryPage.classList.remove('hidden-page');
                     setTimeout(() => galleryPage.style.opacity = '1', 50);
+                    setTimeout(updateHandlePosition, 100); // 切换后刷新滑块
                 }, 400);
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -398,46 +352,34 @@
                     clearInterval(interval);
                     setTimeout(() => {
                         document.getElementById('loader').style.opacity = '0';
-                        setTimeout(() => document.getElementById('loader').remove(), 1000);
+                        setTimeout(() => {
+                            document.getElementById('loader').remove();
+                            updateHandlePosition(); // 加载完初始化滑块
+                        }, 1000);
                     }, 400);
                 }
                 counter.innerText = count.toString().padStart(2, '0');
             }, 60);
         }
 
-        // 高度贪婪算法初始化画廊
         async function initGallery() {
-            const columnElements = [
-                document.getElementById('col-0'),
-                document.getElementById('col-1'),
-                document.getElementById('col-2')
-            ];
-            
+            const columnElements = [document.getElementById('col-0'), document.getElementById('col-1'), document.getElementById('col-2')];
             const isMobile = window.innerWidth < 1024;
             const colCount = isMobile ? 2 : 3;
-
-            // 记录每一列当前的大致高度（px）
             const columnHeights = new Array(colCount).fill(0);
 
-            if (isMobile) {
-                const col2 = document.getElementById('col-2');
-                if (col2) col2.style.display = 'none';
-            }
+            if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            // 依次处理图片
             for (let i = 0; i < IMAGE_ORDER.length; i++) {
                 const imgId = IMAGE_ORDER[i];
                 const fileName = `1 (${imgId}).jpg`;
-                const encodedFileName = encodeURIComponent(fileName);
-                const finalSrc = `${encodedFileName}?v=${version}`;
+                const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
 
-                // 找到目前高度最短的那一列的索引
                 const minHeightIndex = columnHeights.indexOf(Math.min(...columnHeights));
                 const targetColumn = columnElements[minHeightIndex];
 
                 const item = document.createElement('div');
                 item.className = 'grid-item';
-                
                 item.onclick = () => {
                     document.getElementById('lightbox-img').src = finalSrc;
                     document.getElementById('lightbox').style.display = 'flex';
@@ -446,45 +388,26 @@
 
                 const img = new Image();
                 img.src = finalSrc;
-
-                // 我们需要等待图片加载或读取其原始尺寸来计算预计占用的高度
-                // 这里使用 Promise 来确保按顺序计算高度并放置
                 const imgLoaded = new Promise((resolve) => {
                     img.onload = () => {
                         img.classList.add('loaded');
                         item.style.background = 'transparent';
-                        
-                        // 计算图片比例带来的高度： (原始高/原始宽) * 100%
-                        const aspectRatio = img.naturalHeight / img.naturalWidth;
-                        // 更新该列的估算高度
-                        columnHeights[minHeightIndex] += aspectRatio;
+                        columnHeights[minHeightIndex] += img.naturalHeight / img.naturalWidth;
                         resolve();
                     };
-                    img.onerror = () => {
-                        item.style.display = 'none';
-                        resolve();
-                    };
+                    img.onerror = () => { item.style.display = 'none'; resolve(); };
                 });
 
                 item.appendChild(img);
                 targetColumn.appendChild(item);
-                
-                // 等待当前图片尺寸确定后再处理下一张，保证最短列计算准确
                 await imgLoaded;
             }
+            updateHandlePosition(); // 图片加载完后再次校准
         }
 
         window.onload = () => {
             startLoader();
             initGallery();
-        };
-
-        let resizeTimer;
-        window.onresize = () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                location.reload();
-            }, 250);
         };
 
         document.addEventListener('keydown', (e) => {
