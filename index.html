@@ -15,7 +15,7 @@
         :root {
             --bg-main: #fcfcfc; 
             --text-main: #111111;
-            --grid-gap: 1rem; /* 紧凑的间距 */
+            --grid-gap: 1.5rem; /* 间距 */
         }
 
         body {
@@ -67,37 +67,36 @@
             width: 100%;
         }
 
-        /* --- 瀑布流布局 (Masonry) --- */
-        .masonry-grid {
-            column-count: 2;
-            column-gap: var(--grid-gap);
-            width: 100%;
+        /* --- 稳定的瀑布流布局 (Fixed Column Masonry) --- */
+        .masonry-container {
+            display: flex;
+            gap: var(--grid-gap);
+            align-items: start;
         }
 
-        @media (min-width: 1024px) {
-            .masonry-grid {
-                column-count: 3; /* 三列大图排版 */
-            }
+        .masonry-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--grid-gap);
         }
 
         .grid-item {
-            break-inside: avoid;
-            margin-bottom: var(--grid-gap); 
             position: relative;
-            background: #f4f4f4; /* 浅色占位背景 */
+            background: #f4f4f4; /* 基础占位色 */
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
             display: flex;
             flex-direction: column;
             cursor: pointer;
-            min-height: 100px; /* 初始基础高度 */
+            width: 100%;
         }
 
         .grid-item img {
             width: 100%;
-            height: auto; /* 关键：确保匹配图片自身比例 */
+            height: auto;
             display: block;
             opacity: 0;
-            transition: opacity 1s ease, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            transition: opacity 0.8s ease;
         }
 
         .grid-item img.loaded {
@@ -105,7 +104,7 @@
         }
 
         .grid-item:hover img.loaded {
-            transform: scale(1.03);
+            transform: scale(1.02);
         }
 
         .item-info {
@@ -164,8 +163,11 @@
             </nav>
         </header>
 
-        <main id="gallery" class="masonry-grid">
-            <!-- 脚本动态生成 -->
+        <!-- 固定列容器 -->
+        <main id="gallery" class="masonry-container">
+            <div class="masonry-column" id="col-0"></div>
+            <div class="masonry-column" id="col-1"></div>
+            <div class="masonry-column" id="col-2"></div>
         </main>
 
         <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-300">
@@ -182,7 +184,6 @@
             56, 58, 59, 60, 61, 62, 63, 64
         ];
 
-        const gallery = document.getElementById('gallery');
         const version = Date.now();
 
         function startLoader() {
@@ -203,7 +204,22 @@
         }
 
         function initGallery() {
-            IMAGE_ORDER.forEach((imgId) => {
+            const columns = [
+                document.getElementById('col-0'),
+                document.getElementById('col-1'),
+                document.getElementById('col-2')
+            ];
+
+            // 针对移动端，如果屏幕太窄，只使用两列
+            if (window.innerWidth < 1024) {
+                document.getElementById('col-2').style.display = 'none';
+            }
+
+            IMAGE_ORDER.forEach((imgId, index) => {
+                // 决定分发到哪一列 (移动端 2 列，桌面端 3 列)
+                const colIndex = index % (window.innerWidth < 1024 ? 2 : 3);
+                const targetColumn = columns[colIndex];
+
                 const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
                 item.className = 'grid-item';
@@ -219,10 +235,8 @@
 
                 const img = new Image();
                 img.src = finalSrc;
-                img.alt = `Project ${imgId}`;
-                img.loading = "lazy";
+                img.className = 'transition-transform duration-1000';
                 
-                // 核心：图片加载完成后再显示，并取消背景占位
                 img.onload = () => {
                     img.classList.add('loaded');
                     item.style.background = 'transparent';
@@ -238,13 +252,22 @@
 
                 item.appendChild(img);
                 item.appendChild(info);
-                gallery.appendChild(item);
+                targetColumn.appendChild(item);
             });
         }
 
         window.onload = () => {
             startLoader();
             initGallery();
+        };
+
+        // 窗口尺寸改变时刷新，以适应列数变化
+        let resizeTimer;
+        window.onresize = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                location.reload();
+            }, 250);
         };
 
         document.addEventListener('keydown', (e) => {
