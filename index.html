@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUZZ | Architectural Visualization</title>
+    
+    <!-- 浏览器标签页图标 -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Noto+Sans+SC:wght@100;300&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #f9f9f9; 
+            --bg-main: #fcfcfc; 
             --text-main: #111111;
-            --accent: #e5e5e5;
         }
 
         body {
@@ -19,237 +22,219 @@
             background-color: var(--bg-main);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
         }
 
-        /* --- 加载页 --- */
+        /* --- 加载动画 --- */
         #loader {
             position: fixed;
             inset: 0;
-            background: #0d0d0d;
+            background: #000;
             z-index: 9999;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
-            transition: transform 1.4s cubic-bezier(0.82, 0.01, 0.2, 1);
+            transition: opacity 1s ease-out;
         }
 
-        .loader-count {
-            font-size: 14vw;
-            font-weight: 100;
-            line-height: 1;
-            letter-spacing: -0.05em;
-            font-variant-numeric: tabular-nums;
+        /* --- 杂志感栅格系统 (Editorial Grid) --- */
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 手机端 2 列 */
+            gap: 1rem;
         }
 
-        #main-wrapper {
+        @media (min-width: 1024px) {
+            .editorial-grid {
+                grid-template-columns: repeat(4, 1fr); /* 电脑端 4 列 */
+                grid-auto-rows: 20vw; /* 略微缩小行高，让竖构图更显眼 */
+                gap: 1.5rem;
+            }
+        }
+
+        .grid-item {
+            position: relative;
+            overflow: hidden;
+            background: #f4f4f4;
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* 重点图片跨行跨列设置 */
+        @media (min-width: 1024px) {
+            .grid-item.featured {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+            .grid-item.tall {
+                grid-row: span 2; /* 竖构图占两行高度 */
+            }
+            .grid-item.wide {
+                grid-column: span 2; /* 横构图占两列宽度 */
+            }
+        }
+
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .grid-item:hover img {
+            transform: scale(1.08);
+        }
+
+        /* 悬停时的编号信息 */
+        .item-info {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            color: white;
             opacity: 0;
-            transform: translateY(40px);
-            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1) 0.6s;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+            mix-blend-mode: difference;
+            z-index: 10;
         }
 
-        body.loaded #main-wrapper {
+        .grid-item:hover .item-info {
             opacity: 1;
             transform: translateY(0);
         }
 
-        /* --- 瀑布流布局 (Masonry) --- */
-        .masonry-grid {
-            column-count: 1;
-            column-gap: 2rem; 
-        }
-        @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
-        @media (min-width: 1280px) { .masonry-grid { column-count: 3; } }
-
-        .masonry-item {
-            break-inside: avoid;
-            margin-bottom: 3.5rem; 
-            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        .masonry-item:hover {
-            opacity: 0.9;
-            transform: translateY(-8px);
-        }
-
-        .zoom-container {
-            position: relative;
-            overflow: hidden;
-            background: #eeeeee;
-            min-height: 150px;
-        }
-
-        .zoom-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
-            transition: transform 10s cubic-bezier(0.2, 0, 0.2, 1);
-        }
-
-        .masonry-item:hover .zoom-container img {
-            transform: scale(1.1);
-        }
-
-        /* --- 灯箱 --- */
+        /* 灯箱预览 */
         #lightbox {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(249, 249, 249, 0.98);
+            background: rgba(255, 255, 255, 0.98);
             z-index: 2000;
             justify-content: center;
             align-items: center;
             cursor: zoom-out;
-            opacity: 0;
-            transition: opacity 0.4s ease;
         }
-
-        #lightbox.active { display: flex; opacity: 1; }
-
-        #lightbox img {
-            max-width: 92%;
-            max-height: 88%;
-            object-fit: contain;
-            transform: scale(0.98);
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        #lightbox.active img { transform: scale(1); }
 
         .micro-text {
             font-size: 10px;
-            letter-spacing: 0.5em;
+            letter-spacing: 0.4em;
             text-transform: uppercase;
-            font-weight: 300;
         }
 
         ::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
-<body class="bg-[#f9f9f9]">
+<body>
 
-    <!-- 加载动画 -->
     <div id="loader">
-        <div class="loader-count" id="loader-percent">00</div>
-        <div class="micro-text mt-6 opacity-30 tracking-[1em]">Updating Visuals</div>
+        <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- 灯箱预览 -->
-    <div id="lightbox" onclick="closeLightbox()">
-        <img id="lightbox-img" src="" alt="">
-        <div class="absolute top-12 right-12 micro-text cursor-pointer">Close ✕</div>
+    <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
+        <img id="lightbox-img" class="max-w-[90%] max-h-[90%] object-contain" src="">
+        <div class="absolute top-12 right-12 micro-text">Close ✕</div>
     </div>
 
-    <div id="main-wrapper" class="px-8 py-20 md:px-24 md:py-40 lg:px-40">
+    <div id="main-wrapper" class="p-6 md:p-12 lg:p-20">
         
-        <header class="mb-32 md:mb-52 flex flex-col md:flex-row justify-between items-start">
-            <div class="group cursor-default">
-                <h1 class="text-7xl md:text-9xl font-thin tracking-tighter leading-none mb-6 transition-all duration-1000 group-hover:tracking-normal">BUZZ</h1>
-                <p class="micro-text text-gray-400 ml-1 font-light">Digital Visualization Studio</p>
+        <header class="mb-24 flex flex-col md:flex-row justify-between items-baseline">
+            <div>
+                <h1 class="text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
+                <p class="micro-text text-gray-400">Architectural Visualization / Portfolio</p>
             </div>
-            <nav class="mt-20 md:mt-4 flex flex-col gap-6 micro-text text-gray-400 text-right w-full md:w-auto">
-                <a href="#" class="hover:text-black transition-colors">Archive</a>
-                <a href="#" class="hover:text-black transition-colors">Information</a>
-                <a href="mailto:office@buzzvisual.com" class="text-black font-medium mt-4">Contact —></a>
+            <nav class="mt-8 md:mt-0 flex gap-8 micro-text">
+                <a href="#" class="hover:line-through">Works</a>
+                <a href="#" class="hover:line-through">Studio</a>
+                <a href="mailto:office@buzzvisual.com" class="font-bold border-b border-black">Contact</a>
             </nav>
         </header>
 
-        <main id="gallery" class="masonry-grid">
-            <!-- 图片将在这里动态生成 -->
+        <main id="gallery" class="editorial-grid">
+            <!-- 图片由 JS 动态渲染 -->
         </main>
 
-        <footer class="mt-64 mb-20 flex flex-col md:flex-row justify-between items-end gap-12">
-            <div class="max-w-xl">
-                <p class="text-3xl font-extralight leading-tight text-gray-300">
-                    Capturing the <span class="text-black italic">essence</span> of space through light and matter.
-                </p>
-            </div>
-            <div class="flex flex-col items-end gap-4 micro-text text-gray-300">
-                <span>London / Global</span>
-                <span class="text-gray-900 font-normal">© 2024 BUZZVISUAL</span>
-            </div>
+        <footer class="mt-40 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-400">
+            <span>BUZZ VISUAL STUDIO</span>
+            <span>© 2024 ALL RIGHTS RESERVED</span>
         </footer>
     </div>
 
     <script>
-        const IMAGE_COUNT = 64; 
+        // 原始图片数组
+        let IMAGE_ORDER = [
+            1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
+            17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
+            37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
+            56, 58, 59, 60, 61, 62, 63, 64
+        ];
+
+        // 随机洗牌函数
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         const gallery = document.getElementById('gallery');
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        
-        // 使用日期戳作为版本号，确保 GitHub/Vercel 部署后浏览器立即抓取新图
-        const version = Date.now(); 
+        const version = Date.now();
 
         function startLoader() {
             let count = 0;
             const counter = document.getElementById('loader-percent');
             const interval = setInterval(() => {
-                count += Math.floor(Math.random() * 15) + 1;
+                count += Math.floor(Math.random() * 20) + 1;
                 if (count >= 100) {
                     count = 100;
                     clearInterval(interval);
                     setTimeout(() => {
-                        document.getElementById('loader').style.transform = 'translateY(-100%)';
-                        document.body.classList.add('loaded');
-                    }, 500);
+                        document.getElementById('loader').style.opacity = '0';
+                        setTimeout(() => document.getElementById('loader').remove(), 1000);
+                    }, 400);
                 }
                 counter.innerText = count.toString().padStart(2, '0');
-            }, 50);
+            }, 60);
         }
 
         function initGallery() {
-            for (let i = 1; i <= IMAGE_COUNT; i++) {
-                // 严格匹配文件名格式：1 (1).jpg
-                const fileName = `1 (${i}).jpg`;
+            // 在渲染前打乱顺序
+            shuffleArray(IMAGE_ORDER);
+
+            IMAGE_ORDER.forEach((imgId, index) => {
+                const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
-                item.className = 'masonry-item group cursor-zoom-in';
                 
-                const displayId = i < 10 ? `0${i}` : i;
+                let classes = ['grid-item', 'cursor-pointer'];
                 
-                // 强制添加版本参数防止缓存旧图，并进行正确的 URL 编码
+                // 调整杂志排版节奏，增加竖图(tall)的权重
+                if (index === 0) {
+                    classes.push('featured'); // 第一张大焦点
+                } else if (index % 10 === 0) {
+                    classes.push('featured'); // 偶发性大焦点
+                } else if (index % 3 === 0) {
+                    classes.push('tall');     // 提高竖图频率（每3张出一个）
+                } else if (index % 7 === 0) {
+                    classes.push('wide');     // 较低频率的横图
+                }
+                
+                item.className = classes.join(' ');
+                
                 const finalSrc = encodeURI(fileName) + `?v=${version}`;
 
+                item.onclick = () => {
+                    document.getElementById('lightbox-img').src = finalSrc;
+                    document.getElementById('lightbox').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                };
+
                 item.innerHTML = `
-                    <div class="zoom-container" onclick="openLightbox('${fileName}')">
-                        <img 
-                            src="${finalSrc}" 
-                            alt="Archive Ref ${i}"
-                            loading="lazy"
-                            onerror="handleLoadError(this, ${i})"
-                        >
-                    </div>
-                    <div class="mt-5 flex items-center gap-4">
-                        <span class="micro-text text-gray-900 font-medium">Ref. ${displayId}</span>
-                        <div class="flex-grow h-[1px] bg-gray-100"></div>
-                        <span class="micro-text text-gray-300 italic">Jpg</span>
+                    <img src="${finalSrc}" alt="Archive ${imgId}" loading="lazy" onerror="this.parentElement.style.display='none'">
+                    <div class="item-info">
+                        <span class="micro-text">Ref. ${imgId < 10 ? '0'+imgId : imgId}</span>
                     </div>
                 `;
                 gallery.appendChild(item);
-            }
-        }
-
-        function handleLoadError(img, id) {
-            // 如果某张图实在加载不出来，显示一个极简的占位符，保持排版不崩溃
-            const container = img.parentElement;
-            container.style.aspectRatio = "3/2";
-            container.classList.add('flex', 'items-center', 'justify-center', 'bg-[#f4f4f4]');
-            container.innerHTML = `<span class="micro-text text-gray-200">Ref. ${id} Pending</span>`;
-        }
-
-        function openLightbox(src) {
-            lightboxImg.src = encodeURI(src) + `?v=${version}`;
-            lightbox.style.display = 'flex';
-            setTimeout(() => lightbox.classList.add('active'), 10);
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
-            lightbox.classList.remove('active');
-            setTimeout(() => { lightbox.style.display = 'none'; }, 400);
-            document.body.style.overflow = 'auto';
+            });
         }
 
         window.onload = () => {
@@ -257,9 +242,11 @@
             initGallery();
         };
 
-        // 按 ESC 键关闭预览
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'Escape') {
+                document.getElementById('lightbox').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         });
     </script>
 </body>
