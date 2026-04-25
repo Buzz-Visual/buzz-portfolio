@@ -317,12 +317,21 @@
     </div>
 
     <script>
-        const IMAGE_ORDER = [
+        // 原始图片序列
+        let IMAGE_ORDER = [
             1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
             17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
             37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
             56, 58, 59, 60, 61, 62, 63, 64
         ];
+
+        // Fisher-Yates 洗牌算法：随机打乱数组顺序
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
         const version = Date.now();
 
@@ -403,6 +412,9 @@
                 if (col2) col2.style.display = 'none';
             }
 
+            // 在渲染前打乱图片顺序
+            shuffleArray(IMAGE_ORDER);
+
             IMAGE_ORDER.forEach((imgId, index) => {
                 const colIndex = index % colCount;
                 const targetColumn = columns[colIndex];
@@ -410,14 +422,13 @@
                 if (!targetColumn) return;
 
                 const fileName = `1 (${imgId}).jpg`;
-                const displayName = `Project - ${imgId}`; // 这里可以根据实际需求修改名称规则
+                const displayName = `Project - ${imgId}`; 
                 const item = document.createElement('div');
                 item.className = 'grid-item';
                 
                 const encodedFileName = encodeURIComponent(fileName);
                 const finalSrc = `${encodedFileName}?v=${version}`;
 
-                // 添加名称元素
                 const caption = document.createElement('div');
                 caption.className = 'item-caption';
                 caption.innerText = displayName;
