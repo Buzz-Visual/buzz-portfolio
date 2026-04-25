@@ -92,27 +92,44 @@
             overflow: hidden; /* 确保缩放不溢出 */
         }
 
+        /* 鼠标悬停时的白色蒙版效果 */
+        .grid-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            /* 蒙版高度仅覆盖图片区域（不含下方文字） */
+            height: calc(100% - 2.5rem); 
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            pointer-events: none;
+            z-index: 10;
+        }
+
         .grid-item img {
             width: 100%;
             height: auto;
             display: block;
             opacity: 0;
-            /* 复合动效：透明度渐变 + 缩放平滑 + 滤镜平滑 */
+            /* 复合动效：透明度渐变 + 缩放平滑 */
             transition: 
                 opacity 0.8s ease, 
-                transform 1.2s cubic-bezier(0.19, 1, 0.22, 1),
-                filter 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-            filter: brightness(1);
+                transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
         .grid-item img.loaded {
             opacity: 1;
         }
 
-        /* 鼠标悬停动效：放大 + 变亮 */
+        /* 鼠标悬停动效：放大图片 + 显示白色蒙版 */
         .grid-item:hover img.loaded {
             transform: scale(1.05);
-            filter: brightness(1.15); /* 变亮白效果 */
+        }
+
+        .grid-item:hover::after {
+            opacity: 1;
         }
 
         .item-info {
@@ -120,6 +137,7 @@
             color: var(--text-main);
             opacity: 0.4;
             transition: opacity 0.4s ease;
+            height: 2.5rem; /* 固定高度以便计算蒙版范围 */
         }
 
         .grid-item:hover .item-info {
@@ -220,12 +238,14 @@
 
             // 针对移动端，如果屏幕太窄，只使用两列
             if (window.innerWidth < 1024) {
-                document.getElementById('col-2').style.display = 'none';
+                const col2 = document.getElementById('col-2');
+                if (col2) col2.style.display = 'none';
             }
 
             IMAGE_ORDER.forEach((imgId, index) => {
                 // 决定分发到哪一列 (移动端 2 列，桌面端 3 列)
-                const colIndex = index % (window.innerWidth < 1024 ? 2 : 3);
+                const colCount = window.innerWidth < 1024 ? 2 : 3;
+                const colIndex = index % colCount;
                 const targetColumn = columns[colIndex];
 
                 const fileName = `1 (${imgId}).jpg`;
