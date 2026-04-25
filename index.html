@@ -89,6 +89,7 @@
             flex-direction: column;
             cursor: pointer;
             width: 100%;
+            overflow: hidden; /* 确保缩放不溢出 */
         }
 
         .grid-item img {
@@ -96,15 +97,22 @@
             height: auto;
             display: block;
             opacity: 0;
-            transition: opacity 0.8s ease;
+            /* 复合动效：透明度渐变 + 缩放平滑 + 滤镜平滑 */
+            transition: 
+                opacity 0.8s ease, 
+                transform 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+                filter 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            filter: brightness(1);
         }
 
         .grid-item img.loaded {
             opacity: 1;
         }
 
+        /* 鼠标悬停动效：放大 + 变亮 */
         .grid-item:hover img.loaded {
-            transform: scale(1.02);
+            transform: scale(1.05);
+            filter: brightness(1.15); /* 变亮白效果 */
         }
 
         .item-info {
@@ -235,7 +243,6 @@
 
                 const img = new Image();
                 img.src = finalSrc;
-                img.className = 'transition-transform duration-1000';
                 
                 img.onload = () => {
                     img.classList.add('loaded');
