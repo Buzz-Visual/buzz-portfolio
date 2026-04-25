@@ -25,12 +25,10 @@
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            /* 优化系统默认滚动条样式 */
             scrollbar-width: thin;
             scrollbar-color: rgba(0,0,0,0.2) transparent;
         }
 
-        /* 优化 Chrome/Safari 的滚动条外观 */
         body::-webkit-scrollbar {
             width: 8px;
         }
@@ -46,7 +44,6 @@
             background-color: rgba(0, 0, 0, 0.4);
         }
 
-        /* --- 加载动画 --- */
         #loader {
             position: fixed;
             inset: 0;
@@ -59,7 +56,6 @@
             transition: opacity 1s ease-out;
         }
 
-        /* --- LOGO 拉伸动效 --- */
         .logo-buzz {
             transition: letter-spacing 1.2s cubic-bezier(0.19, 1, 0.22, 1);
             letter-spacing: -0.05em;
@@ -68,7 +64,6 @@
             letter-spacing: 0.2em;
         }
 
-        /* --- 导航栏横线动效 --- */
         .nav-link {
             position: relative;
             padding-bottom: 4px;
@@ -89,7 +84,6 @@
             width: 100%;
         }
 
-        /* --- 瀑布流布局 --- */
         .masonry-container {
             display: flex;
             gap: var(--grid-gap);
@@ -173,7 +167,6 @@
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- Lightbox -->
     <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
         <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-0" src="">
         <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity">Close ✕</div>
@@ -192,7 +185,6 @@
             </nav>
         </header>
 
-        <!-- 作品集页面 -->
         <main id="gallery-page" class="page-content">
             <div class="masonry-container">
                 <div class="masonry-column" id="col-0"></div>
@@ -201,7 +193,6 @@
             </div>
         </main>
 
-        <!-- Studio 页面 -->
         <main id="studio-page" class="page-content hidden-page">
             <div class="max-w-3xl">
                 <h2 class="text-3xl font-normal mb-16 tracking-tight text-black">Architecture, art, life</h2>
@@ -213,7 +204,6 @@
             </div>
         </main>
 
-        <!-- 联系方式区域 -->
         <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
             <div class="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-20 micro-text text-gray-400">
                 <div class="space-y-10">
@@ -230,11 +220,9 @@
     </div>
 
     <script>
-        // 锁定图片顺序（基于 ID）
         const IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
         const version = Date.now();
 
-        // --- 基础页面功能 ---
         function hideContact() {
             const contactSection = document.getElementById('contact-section');
             if (contactSection) {
@@ -287,17 +275,17 @@
                     count = 100;
                     clearInterval(interval);
                     setTimeout(() => {
-                        document.getElementById('loader').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('loader').remove();
-                        }, 1000);
+                        const loader = document.getElementById('loader');
+                        if(loader) {
+                            loader.style.opacity = '0';
+                            setTimeout(() => loader.remove(), 1000);
+                        }
                     }, 400);
                 }
                 counter.innerText = count.toString().padStart(2, '0');
             }, 60);
         }
 
-        // --- 优化后的并行加载与动态平衡逻辑 ---
         async function initGallery() {
             const columnElements = [
                 document.getElementById('col-0'), 
@@ -306,14 +294,12 @@
             ];
             const isMobile = window.innerWidth < 1024;
             const colCount = isMobile ? 2 : 3;
-            
-            // 记录每一列的当前高度比例总和
             let colHeights = new Array(colCount).fill(0);
 
             if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            // 我们将所有图片的 Promise 存入数组，并发执行
-            const loadPromises = IMAGE_ORDER.map((imgId) => {
+            // 1. 并发请求所有图片的尺寸
+            const sizePromises = IMAGE_ORDER.map((imgId) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
                 
@@ -321,46 +307,9 @@
                     const img = new Image();
                     img.src = finalSrc;
                     
-                    // 当获取到图片基本信息（宽高）时即开始排版，无需等待整张图下载完
                     const checkSize = () => {
                         if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                            // 寻找当前最短的列
-                            let minHeightIndex = 0;
-                            let minHeight = colHeights[0];
-                            for (let i = 1; i < colCount; i++) {
-                                if (colHeights[i] < minHeight) {
-                                    minHeight = colHeights[i];
-                                    minHeightIndex = i;
-                                }
-                            }
-
-                            const targetColumn = columnElements[minHeightIndex];
-                            const item = document.createElement('div');
-                            item.className = 'grid-item';
-                            
-                            // 保持占位比例，防止排版抖动
-                            const ratio = (img.naturalHeight / img.naturalWidth) * 100;
-                            item.style.paddingBottom = `${ratio}%`;
-                            
-                            item.onclick = () => {
-                                document.getElementById('lightbox-img').src = finalSrc;
-                                document.getElementById('lightbox').style.display = 'flex';
-                                document.body.style.overflow = 'hidden';
-                            };
-
-                            // 图片样式处理
-                            img.style.position = 'absolute';
-                            img.style.top = '0';
-                            img.style.left = '0';
-                            img.classList.add('loaded');
-                            
-                            item.appendChild(img);
-                            targetColumn.appendChild(item);
-
-                            // 更新该列高度
-                            colHeights[minHeightIndex] += (img.naturalHeight / img.naturalWidth);
-                            
-                            resolve();
+                            resolve({ imgId, img, finalSrc, width: img.naturalWidth, height: img.naturalHeight });
                             return true;
                         }
                         return false;
@@ -368,21 +317,59 @@
 
                     if (!checkSize()) {
                         img.onload = checkSize;
-                        // 备用方案：定时轮询尺寸获取（有些浏览器即使没完全下载也能提前拿到尺寸）
                         const interval = setInterval(() => {
                             if (checkSize()) clearInterval(interval);
                         }, 50);
                     }
-                    
-                    img.onerror = () => resolve(); 
+                    img.onerror = () => resolve(null);
                 });
             });
 
-            // 所有的 Promise 同时启动，不需要 await 其中某一个
-            // 但为了保证整体顺序一致，我们按数组索引依次处理这些 Promise
-            for (const promise of loadPromises) {
-                await promise;
-            }
+            // 2. 等待所有尺寸返回（并发进行中）
+            const loadedData = await Promise.all(sizePromises);
+            
+            // 3. 严格按照 IMAGE_ORDER 顺序进行排版分配
+            // 因为 loadedData 是按照 IMAGE_ORDER 生成的 Promise 结果，所以循环它即可保证顺序
+            loadedData.forEach((data) => {
+                if (!data) return;
+
+                const { img, finalSrc, width, height } = data;
+
+                // 寻找当前最短的列进行分配
+                let minHeightIndex = 0;
+                let minHeight = colHeights[0];
+                for (let i = 1; i < colCount; i++) {
+                    if (colHeights[i] < minHeight) {
+                        minHeight = colHeights[i];
+                        minHeightIndex = i;
+                    }
+                }
+
+                const targetColumn = columnElements[minHeightIndex];
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                
+                const ratio = (height / width) * 100;
+                item.style.paddingBottom = `${ratio}%`;
+                
+                item.onclick = () => {
+                    document.getElementById('lightbox-img').src = finalSrc;
+                    document.getElementById('lightbox').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                };
+
+                img.style.position = 'absolute';
+                img.style.top = '0';
+                img.style.left = '0';
+                // 此时图片可能还没完全下载完，但已经开始显示占位和下载进度
+                img.classList.add('loaded');
+                
+                item.appendChild(img);
+                targetColumn.appendChild(item);
+
+                // 更新高度比例计数，确保下一张图分配到正确的列
+                colHeights[minHeightIndex] += (height / width);
+            });
         }
 
         window.onload = () => {
