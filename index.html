@@ -15,6 +15,7 @@
         :root {
             --bg-main: #fcfcfc; 
             --text-main: #111111;
+            --grid-gap: 2.5rem; /* 统一的间距变量 */
         }
 
         body {
@@ -66,41 +67,43 @@
             width: 100%;
         }
 
-        /* --- 杂志感栅格系统 (匹配比例版) --- */
-        .editorial-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-            align-items: start; /* 顶部对齐，允许高度不一 */
+        /* --- 瀑布流布局 (Masonry Style) --- */
+        /* 使用 column-count 实现真正的瀑布流，消除行间空白 */
+        .masonry-grid {
+            column-count: 2;
+            column-gap: var(--grid-gap);
+            width: 100%;
         }
 
         @media (min-width: 1024px) {
-            .editorial-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 3rem;
+            .masonry-grid {
+                column-count: 4;
             }
         }
 
         .grid-item {
+            break-inside: avoid; /* 防止图片被分割到两列 */
+            margin-bottom: var(--grid-gap); /* 确保垂直间距与列间距一致 */
             position: relative;
             overflow: hidden;
-            background: transparent; /* 去掉背景色，突出图片本身比例 */
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
             display: flex;
             flex-direction: column;
+            cursor: pointer;
         }
 
-        /* 重点图片跨列设置 */
+        /* 重点图片设置：在瀑布流中，我们可以通过让某些图片跨列来增加杂志感 */
+        /* 注意：原生 CSS column 布局对 span 的支持有限，但在 4 列下设为 all 可横跨 */
         @media (min-width: 1024px) {
             .grid-item.featured {
-                grid-column: span 2; /* 大图占两列宽，高度随比例自适应 */
+                column-span: all; /* 横跨所有列，作为视觉锚点 */
+                margin-bottom: calc(var(--grid-gap) * 1.5);
             }
-            /* 竖构图不再强制 span 2 行，而是由图片比例自然决定 */
         }
 
         .grid-item img {
             width: 100%;
-            height: auto; /* 关键：高度自动，匹配比例 */
+            height: auto;
             display: block;
             transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
@@ -165,7 +168,8 @@
             </nav>
         </header>
 
-        <main id="gallery" class="editorial-grid">
+        <!-- 修改为 masonry-grid 容器 -->
+        <main id="gallery" class="masonry-grid">
             <!-- 脚本生成内容 -->
         </main>
 
@@ -176,7 +180,6 @@
     </div>
 
     <script>
-        // 遵循固定排序数组
         const IMAGE_ORDER = [
             1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
             17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
@@ -209,11 +212,12 @@
                 const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
                 
-                let classes = ['grid-item', 'cursor-pointer'];
+                let classes = ['grid-item'];
                 
-                // 杂志节奏：决定宽度
-                if (index === 0 || index % 15 === 0) {
-                    classes.push('featured'); // 占两列宽，高度按比例
+                // 在瀑布流中，我们偶尔使用 featured 来打破单一感
+                // 第一张作为大幅开场
+                if (index === 0) {
+                    classes.push('featured');
                 }
                 
                 item.className = classes.join(' ');
@@ -227,7 +231,6 @@
                     document.body.style.overflow = 'hidden';
                 };
 
-                // 不再使用混合模式，直接在下方展示微缩文字，更像摄影集排版
                 item.innerHTML = `
                     <img src="${finalSrc}" alt="Project ${imgId}" loading="lazy" onerror="this.parentElement.style.display='none'">
                     <div class="item-info micro-text">
