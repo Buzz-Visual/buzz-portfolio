@@ -93,11 +93,19 @@
             overflow: hidden; 
         }
 
-        /* 悬停时的淡淡灰白感 */
-        .grid-item:hover img {
-            opacity: 0.85;
-            filter: grayscale(0.2) brightness(1.05);
-            transform: scale(1.03);
+        /* 悬停时的白色蒙版覆盖 */
+        .grid-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.25); /* 淡淡的白色蒙版 */
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 10;
+        }
+
+        .grid-item:hover::after {
+            opacity: 1;
         }
 
         .grid-item img {
@@ -107,19 +115,23 @@
             opacity: 0;
             transition: 
                 opacity 0.8s ease, 
-                filter 0.8s ease,
                 transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 5;
         }
 
         .grid-item img.loaded {
             opacity: 1;
         }
 
+        .grid-item:hover img.loaded {
+            transform: scale(1.03);
+        }
+
         #lightbox {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.99);
             z-index: 2000;
             flex-direction: column;
             justify-content: center;
@@ -152,7 +164,7 @@
             opacity: 1;
         }
 
-        /* 联系信息浮层或区域 */
+        /* 联系信息区域 */
         #contact-section {
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
             opacity: 0;
@@ -163,7 +175,7 @@
             transform: translateY(0);
         }
 
-        /* 布局锁定工具样式 */
+        /* 隐藏布局工具按钮 */
         #layout-tool {
             position: fixed;
             bottom: 20px;
@@ -176,14 +188,11 @@
             letter-spacing: 0.1em;
             cursor: pointer;
             z-index: 5000;
-            display: flex;
+            display: none; /* 修改为隐藏，如需再次使用请改为 flex */
             align-items: center;
             gap: 8px;
             opacity: 0.6;
             transition: opacity 0.3s;
-        }
-        #layout-tool:hover {
-            opacity: 1;
         }
     </style>
 </head>
@@ -193,16 +202,16 @@
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- 顺序锁定辅助工具 -->
+    <!-- 顺序锁定辅助工具 (已默认隐藏) -->
     <div id="layout-tool" onclick="copyCurrentOrder()">
         <span>COPY CURRENT ORDER</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
     </div>
 
+    <!-- Lightbox: 移除了下方的文字 p 标签 -->
     <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
-        <img id="lightbox-img" class="max-w-[85%] max-h-[80%] object-contain shadow-2xl mb-8" src="">
-        <p id="lightbox-caption" class="micro-text text-gray-400"></p>
-        <div class="absolute top-12 right-12 micro-text">Close ✕</div>
+        <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-0" src="">
+        <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity">Close ✕</div>
     </div>
 
     <div id="main-wrapper" class="p-6 md:p-12 lg:p-20">
@@ -237,11 +246,9 @@
                     <p>
                         The pleasure we get from the visual expression of architecture is like the indispensable source of life.
                     </p>
-                    
                     <p>
                         For more than ten years, we have been exploring visual images that are more in line with the design expression, hoping to bring more sensory image presentation to the architects' design schemes.
                     </p>
-                    
                     <p>
                         Art is the product of spiritual perception and the bridge of soul communication. This is our life and the difference between our life and other carbon based organisms.
                     </p>
@@ -249,7 +256,7 @@
             </div>
         </main>
 
-        <!-- 整合后的所有联系方式区域 -->
+        <!-- 联系方式区域 -->
         <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
             <div class="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-20 micro-text text-gray-400">
                 <div class="space-y-10">
@@ -318,10 +325,7 @@
     </div>
 
     <script>
-        /**
-         * 锁定顺序指南：
-         * 已填入你提供的数组并注释了 shuffleArray，顺序现已锁定。
-         */
+        // 锁定的图片顺序
         let IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
 
         function shuffleArray(array) {
@@ -331,7 +335,6 @@
             }
         }
 
-        // 复制功能
         function copyCurrentOrder() {
             const orderStr = JSON.stringify(IMAGE_ORDER);
             const el = document.createElement('textarea');
@@ -340,12 +343,10 @@
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            
             console.log("[CURRENT ORDER COPIED]:", orderStr);
-            
             const btn = document.getElementById('layout-tool');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "<span>COPIED TO CLIPBOARD!</span>";
+            btn.innerHTML = "<span>COPIED!</span>";
             setTimeout(() => { btn.innerHTML = originalText; }, 2000);
         }
 
@@ -375,9 +376,7 @@
         function showPage(pageId) {
             const galleryPage = document.getElementById('gallery-page');
             const studioPage = document.getElementById('studio-page');
-            
             hideContact();
-
             if (pageId === 'studio') {
                 galleryPage.style.opacity = '0';
                 setTimeout(() => {
@@ -419,27 +418,21 @@
                 document.getElementById('col-1'),
                 document.getElementById('col-2')
             ];
-
             const isMobile = window.innerWidth < 1024;
             const colCount = isMobile ? 2 : 3;
-
             if (isMobile) {
                 const col2 = document.getElementById('col-2');
                 if (col2) col2.style.display = 'none';
             }
 
-            // --- 随机洗牌 ---
-            // 已为您锁定顺序，下方代码已注释
-            // shuffleArray(IMAGE_ORDER);
+            // shuffleArray(IMAGE_ORDER); // 锁定顺序中，已注释
 
             IMAGE_ORDER.forEach((imgId, index) => {
                 const colIndex = index % colCount;
                 const targetColumn = columns[colIndex];
-
                 if (!targetColumn) return;
 
                 const fileName = `1 (${imgId}).jpg`;
-                const displayName = `Project - ${imgId}`; 
                 const item = document.createElement('div');
                 item.className = 'grid-item';
                 
@@ -448,7 +441,6 @@
 
                 item.onclick = () => {
                     document.getElementById('lightbox-img').src = finalSrc;
-                    document.getElementById('lightbox-caption').innerText = displayName;
                     document.getElementById('lightbox').style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                 };
