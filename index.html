@@ -30,7 +30,7 @@
             scrollbar-color: rgba(0,0,0,0.2) transparent;
         }
 
-        /* 优化 Chrome/Safari 的滚动条外观，使其更接近您截图中的灰色样式 */
+        /* 优化 Chrome/Safari 的滚动条外观 */
         body::-webkit-scrollbar {
             width: 8px;
         }
@@ -231,7 +231,7 @@
     </div>
 
     <script>
-        // 锁定图片顺序
+        // 锁定图片顺序（基于 ID）
         const IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
         const version = Date.now();
 
@@ -298,7 +298,7 @@
             }, 60);
         }
 
-        // --- 锁定顺序的并发加载逻辑 ---
+        // --- 动态列平衡加载逻辑 ---
         async function initGallery() {
             const columnElements = [
                 document.getElementById('col-0'), 
@@ -307,41 +307,54 @@
             ];
             const isMobile = window.innerWidth < 1024;
             const colCount = isMobile ? 2 : 3;
+            
+            // 记录每一列的当前高度
+            let colHeights = new Array(colCount).fill(0);
 
             if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            // 1. 先按顺序创建所有占位符
-            const items = IMAGE_ORDER.map((imgId, index) => {
-                const colIndex = index % colCount;
-                const targetColumn = columnElements[colIndex];
-                
-                const item = document.createElement('div');
-                item.className = 'grid-item';
-                
+            // 必须严格按顺序处理，以保证分配逻辑的确定性
+            for (const imgId of IMAGE_ORDER) {
                 const fileName = `1 (${imgId}).jpg`;
                 const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
                 
-                item.onclick = () => {
-                    document.getElementById('lightbox-img').src = finalSrc;
-                    document.getElementById('lightbox').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                };
-                
-                targetColumn.appendChild(item);
-                return { item, src: finalSrc };
-            });
+                await new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = finalSrc;
+                    
+                    img.onload = () => {
+                        // 寻找当前最短的列索引
+                        let minHeightIndex = 0;
+                        let minHeight = colHeights[0];
+                        for (let i = 1; i < colCount; i++) {
+                            if (colHeights[i] < minHeight) {
+                                minHeight = colHeights[i];
+                                minHeightIndex = i;
+                            }
+                        }
 
-            // 2. 并发加载图片
-            items.forEach(({ item, src }) => {
-                const img = new Image();
-                img.src = src;
-                img.onload = () => {
-                    img.classList.add('loaded');
-                    item.appendChild(img);
-                    item.style.background = 'transparent';
-                    item.style.minHeight = 'auto';
-                };
-            });
+                        const targetColumn = columnElements[minHeightIndex];
+                        const item = document.createElement('div');
+                        item.className = 'grid-item';
+                        item.onclick = () => {
+                            document.getElementById('lightbox-img').src = finalSrc;
+                            document.getElementById('lightbox').style.display = 'flex';
+                            document.body.style.overflow = 'hidden';
+                        };
+
+                        img.classList.add('loaded');
+                        item.appendChild(img);
+                        targetColumn.appendChild(item);
+
+                        // 更新高度比例（高度 / 宽度）
+                        colHeights[minHeightIndex] += (img.naturalHeight / img.naturalWidth);
+                        
+                        resolve();
+                    };
+
+                    img.onerror = () => resolve(); // 跳过错误图片
+                });
+            }
         }
 
         window.onload = () => {
