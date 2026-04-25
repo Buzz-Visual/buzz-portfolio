@@ -25,7 +25,7 @@
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            /* 隐藏原生滚动条，使用自定义拖拽条 */
+            /* 隐藏原生滚动条 */
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
@@ -144,33 +144,23 @@
         .page-content { transition: opacity 0.8s ease; }
         .hidden-page { display: none; opacity: 0; }
 
-        /* --- 右侧垂直滚动拖拽条 --- */
-        #scroll-track {
-            position: fixed;
-            right: 15px;
-            top: 20px;
-            bottom: 20px;
-            width: 2px;
-            background: rgba(0,0,0,0.03);
-            z-index: 4000;
-        }
-        
+        /* --- 唯一的右侧拖拽控制杆 --- */
         #scroll-handle {
-            position: absolute;
-            left: -1px; /* 居中于轨道 */
+            position: fixed;
+            right: 12px;
             top: 0;
-            width: 4px;
-            height: 60px; /* 固定高度的滑块 */
-            background: #333;
-            border-radius: 2px;
+            width: 6px; /* 较粗的宽度 */
+            height: 80px; 
+            background: #111;
+            border-radius: 3px;
             cursor: ns-resize;
-            transition: background 0.3s, width 0.2s, left 0.2s;
+            z-index: 4000;
+            transition: background 0.3s, width 0.2s;
         }
         
         #scroll-handle:hover, #scroll-handle.dragging {
             background: #000;
-            width: 6px;
-            left: -2px;
+            width: 10px;
         }
 
         #main-wrapper {
@@ -187,10 +177,8 @@
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <!-- 垂直滚动控制条 -->
-    <div id="scroll-track">
-        <div id="scroll-handle" title="上下拖动控制滚动"></div>
-    </div>
+    <!-- 唯一的滚动控制条 -->
+    <div id="scroll-handle" title="上下拖动控制滚动"></div>
 
     <!-- Lightbox -->
     <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
@@ -254,17 +242,17 @@
 
         // --- 垂直滚动拖拽逻辑 ---
         const handle = document.getElementById('scroll-handle');
-        const track = document.getElementById('scroll-track');
         let isDragging = false;
 
         function updateHandlePosition() {
             if (isDragging) return;
             const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+            if (scrollTotal <= 0) return;
             const scrollCurrent = window.scrollY;
-            const trackHeight = track.clientHeight - handle.clientHeight;
+            const availableHeight = window.innerHeight - 40 - handle.clientHeight; // 留出上下各20px间距
             const percentage = scrollCurrent / scrollTotal;
-            const topPos = percentage * trackHeight;
-            handle.style.top = `${Math.max(0, Math.min(topPos, trackHeight))}px`;
+            const topPos = 20 + (percentage * availableHeight);
+            handle.style.top = `${topPos}px`;
         }
 
         handle.addEventListener('mousedown', (e) => {
@@ -276,17 +264,17 @@
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            const trackRect = track.getBoundingClientRect();
-            let y = e.clientY - trackRect.top - (handle.clientHeight / 2);
-            const maxTop = track.clientHeight - handle.clientHeight;
+            const availableHeight = window.innerHeight - 40 - handle.clientHeight;
+            let y = e.clientY - (handle.clientHeight / 2);
             
-            y = Math.max(0, Math.min(y, maxTop));
+            // 限制范围
+            y = Math.max(20, Math.min(y, 20 + availableHeight));
             handle.style.top = `${y}px`;
 
             // 同步页面滚动
             const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollTarget = (y / maxTop) * scrollTotal;
-            window.scrollTo(0, scrollTarget);
+            const percentage = (y - 20) / availableHeight;
+            window.scrollTo(0, percentage * scrollTotal);
         });
 
         window.addEventListener('mouseup', () => {
@@ -296,6 +284,7 @@
         });
 
         window.addEventListener('scroll', updateHandlePosition);
+        window.addEventListener('resize', updateHandlePosition);
 
         // --- 基础页面功能 ---
         function hideContact() {
@@ -336,7 +325,7 @@
                     studioPage.classList.add('hidden-page');
                     galleryPage.classList.remove('hidden-page');
                     setTimeout(() => galleryPage.style.opacity = '1', 50);
-                    setTimeout(updateHandlePosition, 100); // 切换后刷新滑块
+                    setTimeout(updateHandlePosition, 100);
                 }, 400);
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -354,7 +343,7 @@
                         document.getElementById('loader').style.opacity = '0';
                         setTimeout(() => {
                             document.getElementById('loader').remove();
-                            updateHandlePosition(); // 加载完初始化滑块
+                            updateHandlePosition();
                         }, 1000);
                     }, 400);
                 }
@@ -362,6 +351,7 @@
             }, 60);
         }
 
+        // --- 并发加载图片逻辑 ---
         async function initGallery() {
             const columnElements = [document.getElementById('col-0'), document.getElementById('col-1'), document.getElementById('col-2')];
             const isMobile = window.innerWidth < 1024;
@@ -370,39 +360,42 @@
 
             if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            for (let i = 0; i < IMAGE_ORDER.length; i++) {
-                const imgId = IMAGE_ORDER[i];
+            // 并发启动所有加载任务
+            const loadTasks = IMAGE_ORDER.map(async (imgId) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
 
-                const minHeightIndex = columnHeights.indexOf(Math.min(...columnHeights));
-                const targetColumn = columnElements[minHeightIndex];
-
-                const item = document.createElement('div');
-                item.className = 'grid-item';
-                item.onclick = () => {
-                    document.getElementById('lightbox-img').src = finalSrc;
-                    document.getElementById('lightbox').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                };
-
-                const img = new Image();
-                img.src = finalSrc;
-                const imgLoaded = new Promise((resolve) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = finalSrc;
                     img.onload = () => {
+                        // 寻找当前最短的列
+                        const minHeightIndex = columnHeights.indexOf(Math.min(...columnHeights.slice(0, colCount)));
+                        const targetColumn = columnElements[minHeightIndex];
+
+                        const item = document.createElement('div');
+                        item.className = 'grid-item';
+                        item.onclick = () => {
+                            document.getElementById('lightbox-img').src = finalSrc;
+                            document.getElementById('lightbox').style.display = 'flex';
+                            document.body.style.overflow = 'hidden';
+                        };
+
                         img.classList.add('loaded');
-                        item.style.background = 'transparent';
+                        item.appendChild(img);
+                        targetColumn.appendChild(item);
+
+                        // 更新该列高度
                         columnHeights[minHeightIndex] += img.naturalHeight / img.naturalWidth;
+                        updateHandlePosition(); // 每次插入图片都更新一次滚动条位置
                         resolve();
                     };
-                    img.onerror = () => { item.style.display = 'none'; resolve(); };
+                    img.onerror = () => resolve(); // 忽略错误图片
                 });
+            });
 
-                item.appendChild(img);
-                targetColumn.appendChild(item);
-                await imgLoaded;
-            }
-            updateHandlePosition(); // 图片加载完后再次校准
+            // 等待所有任务完成（虽然已经在 onload 里实时插入了）
+            await Promise.all(loadTasks);
         }
 
         window.onload = () => {
