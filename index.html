@@ -298,77 +298,85 @@
 
             if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            // 1. 并发请求所有图片的尺寸
-            const sizePromises = IMAGE_ORDER.map((imgId) => {
+            // 存储已加载完成尺寸的数据，Key 为 imgId
+            const loadedMetadata = {};
+            let nextIndexToRender = 0;
+
+            function renderNextAvailable() {
+                // 检查 IMAGE_ORDER 中下一个要渲染的图片是否已经准备好尺寸
+                while (nextIndexToRender < IMAGE_ORDER.length) {
+                    const imgId = IMAGE_ORDER[nextIndexToRender];
+                    const data = loadedMetadata[imgId];
+                    
+                    if (!data) break; // 下一张还没好，停止渲染队列，等待它完成
+
+                    const { img, finalSrc, width, height } = data;
+
+                    // 动态分配到最短列
+                    let minHeightIndex = 0;
+                    let minHeight = colHeights[0];
+                    for (let i = 1; i < colCount; i++) {
+                        if (colHeights[i] < minHeight) {
+                            minHeight = colHeights[i];
+                            minHeightIndex = i;
+                        }
+                    }
+
+                    const targetColumn = columnElements[minHeightIndex];
+                    const item = document.createElement('div');
+                    item.className = 'grid-item';
+                    
+                    const ratio = (height / width) * 100;
+                    item.style.paddingBottom = `${ratio}%`;
+                    
+                    item.onclick = () => {
+                        document.getElementById('lightbox-img').src = finalSrc;
+                        document.getElementById('lightbox').style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    };
+
+                    img.style.position = 'absolute';
+                    img.style.top = '0';
+                    img.style.left = '0';
+                    img.classList.add('loaded');
+                    
+                    item.appendChild(img);
+                    targetColumn.appendChild(item);
+
+                    colHeights[minHeightIndex] += (height / width);
+                    nextIndexToRender++;
+                }
+            }
+
+            // 并发启动所有图片的尺寸探测
+            IMAGE_ORDER.forEach((imgId) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
                 
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.src = finalSrc;
-                    
-                    const checkSize = () => {
-                        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                            resolve({ imgId, img, finalSrc, width: img.naturalWidth, height: img.naturalHeight });
-                            return true;
-                        }
-                        return false;
-                    };
-
-                    if (!checkSize()) {
-                        img.onload = checkSize;
-                        const interval = setInterval(() => {
-                            if (checkSize()) clearInterval(interval);
-                        }, 50);
-                    }
-                    img.onerror = () => resolve(null);
-                });
-            });
-
-            // 2. 等待所有尺寸返回（并发进行中）
-            const loadedData = await Promise.all(sizePromises);
-            
-            // 3. 严格按照 IMAGE_ORDER 顺序进行排版分配
-            // 因为 loadedData 是按照 IMAGE_ORDER 生成的 Promise 结果，所以循环它即可保证顺序
-            loadedData.forEach((data) => {
-                if (!data) return;
-
-                const { img, finalSrc, width, height } = data;
-
-                // 寻找当前最短的列进行分配
-                let minHeightIndex = 0;
-                let minHeight = colHeights[0];
-                for (let i = 1; i < colCount; i++) {
-                    if (colHeights[i] < minHeight) {
-                        minHeight = colHeights[i];
-                        minHeightIndex = i;
-                    }
-                }
-
-                const targetColumn = columnElements[minHeightIndex];
-                const item = document.createElement('div');
-                item.className = 'grid-item';
+                const img = new Image();
+                img.src = finalSrc;
                 
-                const ratio = (height / width) * 100;
-                item.style.paddingBottom = `${ratio}%`;
-                
-                item.onclick = () => {
-                    document.getElementById('lightbox-img').src = finalSrc;
-                    document.getElementById('lightbox').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
+                const checkSize = () => {
+                    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                        loadedMetadata[imgId] = { img, finalSrc, width: img.naturalWidth, height: img.naturalHeight };
+                        renderNextAvailable(); // 尝试触发流式渲染
+                        return true;
+                    }
+                    return false;
                 };
 
-                img.style.position = 'absolute';
-                img.style.top = '0';
-                img.style.left = '0';
-                // 此时图片可能还没完全下载完，但已经开始显示占位和下载进度
-                img.classList.add('loaded');
-                
-                item.appendChild(img);
-                targetColumn.appendChild(item);
-
-                // 更新高度比例计数，确保下一张图分配到正确的列
-                colHeights[minHeightIndex] += (height / width);
+                if (!checkSize()) {
+                    img.onload = checkSize;
+                    const interval = setInterval(() => {
+                        if (checkSize()) clearInterval(interval);
+                    }, 50);
+                }
+                img.onerror = () => {
+                    // 出错也要推进队列，否则会卡死后续渲染
+                    loadedMetadata[imgId] = "error"; 
+                    nextIndexToRender++;
+                    renderNextAvailable();
+                };
             });
         }
 
