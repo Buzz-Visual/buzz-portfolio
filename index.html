@@ -159,6 +159,14 @@
             padding-top: 5rem;
             padding-bottom: 5rem;
         }
+
+        /* 链接交互优化 */
+        .social-link {
+            transition: color 0.3s ease;
+        }
+        .social-link:hover {
+            color: #000;
+        }
     </style>
 </head>
 <body>
@@ -204,11 +212,39 @@
             </div>
         </main>
 
+        <!-- 完整的联系方式区域 -->
         <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
-            <div class="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-20 micro-text text-gray-400">
-                <div class="space-y-10">
-                    <div><p class="mb-4 text-black text-xs font-bold">Email</p><a href="mailto:info.buzzvisual@gmail.com" class="hover:text-black transition-colors">info.buzzvisual@gmail.com</a></div>
-                    <div><p class="mb-4 text-black text-xs font-bold">Wechat</p><p class="text-gray-500">18201756846</p></div>
+            <div class="max-w-6xl grid grid-cols-1 md:grid-cols-4 gap-12 micro-text text-gray-400">
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Address</p>
+                        <p class="leading-relaxed">10th Floor, Building 1, No. 641,<br>Tianshan Road, Changning District,<br>Shanghai, China</p>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Email</p>
+                        <a href="mailto:info.buzzvisual@gmail.com" class="social-link">info.buzzvisual@gmail.com</a>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Phone</p>
+                        <p>+86 182 0175 6846</p>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Social</p>
+                        <div class="flex flex-col gap-2">
+                            <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-link">Instagram</a>
+                            <a href="https://www.behance.net/buzzvisual" target="_blank" class="social-link">Behance</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Wechat</p>
+                        <p class="text-gray-500 font-medium">18201756846</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -226,8 +262,7 @@
         function hideContact() {
             const contactSection = document.getElementById('contact-section');
             if (contactSection) {
-                contactSection.classList.remove('active');
-                setTimeout(() => contactSection.classList.add('hidden-page'), 400);
+                contactSection.classList.add('hidden-page');
             }
         }
 
@@ -236,11 +271,10 @@
             if (contactSection.classList.contains('hidden-page')) {
                 contactSection.classList.remove('hidden-page');
                 setTimeout(() => {
-                    contactSection.classList.add('active');
-                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                    contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 50);
             } else {
-                contactSection.scrollIntoView({ behavior: 'smooth' });
+                contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
@@ -298,21 +332,16 @@
 
             if (isMobile) document.getElementById('col-2').style.display = 'none';
 
-            // 存储已加载完成尺寸的数据，Key 为 imgId
             const loadedMetadata = {};
             let nextIndexToRender = 0;
 
             function renderNextAvailable() {
-                // 检查 IMAGE_ORDER 中下一个要渲染的图片是否已经准备好尺寸
                 while (nextIndexToRender < IMAGE_ORDER.length) {
                     const imgId = IMAGE_ORDER[nextIndexToRender];
                     const data = loadedMetadata[imgId];
-                    
-                    if (!data) break; // 下一张还没好，停止渲染队列，等待它完成
+                    if (!data) break;
 
                     const { img, finalSrc, width, height } = data;
-
-                    // 动态分配到最短列
                     let minHeightIndex = 0;
                     let minHeight = colHeights[0];
                     for (let i = 1; i < colCount; i++) {
@@ -325,7 +354,6 @@
                     const targetColumn = columnElements[minHeightIndex];
                     const item = document.createElement('div');
                     item.className = 'grid-item';
-                    
                     const ratio = (height / width) * 100;
                     item.style.paddingBottom = `${ratio}%`;
                     
@@ -348,18 +376,16 @@
                 }
             }
 
-            // 并发启动所有图片的尺寸探测
             IMAGE_ORDER.forEach((imgId) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
-                
                 const img = new Image();
                 img.src = finalSrc;
                 
                 const checkSize = () => {
                     if (img.naturalWidth > 0 && img.naturalHeight > 0) {
                         loadedMetadata[imgId] = { img, finalSrc, width: img.naturalWidth, height: img.naturalHeight };
-                        renderNextAvailable(); // 尝试触发流式渲染
+                        renderNextAvailable();
                         return true;
                     }
                     return false;
@@ -372,7 +398,6 @@
                     }, 50);
                 }
                 img.onerror = () => {
-                    // 出错也要推进队列，否则会卡死后续渲染
                     loadedMetadata[imgId] = "error"; 
                     nextIndexToRender++;
                     renderNextAvailable();
