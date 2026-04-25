@@ -15,7 +15,7 @@
         :root {
             --bg-main: #fcfcfc; 
             --text-main: #111111;
-            --grid-gap: 2.5rem; /* 统一的间距变量 */
+            --grid-gap: 1rem; /* 缩小一半以上的间距 */
         }
 
         body {
@@ -68,7 +68,6 @@
         }
 
         /* --- 瀑布流布局 (Masonry Style) --- */
-        /* 使用 column-count 实现真正的瀑布流，消除行间空白 */
         .masonry-grid {
             column-count: 2;
             column-gap: var(--grid-gap);
@@ -77,28 +76,20 @@
 
         @media (min-width: 1024px) {
             .masonry-grid {
-                column-count: 4;
+                /* 减少列数至 3 列，从而让每张图看起来更大 */
+                column-count: 3;
             }
         }
 
         .grid-item {
-            break-inside: avoid; /* 防止图片被分割到两列 */
-            margin-bottom: var(--grid-gap); /* 确保垂直间距与列间距一致 */
+            break-inside: avoid;
+            margin-bottom: var(--grid-gap); 
             position: relative;
             overflow: hidden;
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
             display: flex;
             flex-direction: column;
             cursor: pointer;
-        }
-
-        /* 重点图片设置：在瀑布流中，我们可以通过让某些图片跨列来增加杂志感 */
-        /* 注意：原生 CSS column 布局对 span 的支持有限，但在 4 列下设为 all 可横跨 */
-        @media (min-width: 1024px) {
-            .grid-item.featured {
-                column-span: all; /* 横跨所有列，作为视觉锚点 */
-                margin-bottom: calc(var(--grid-gap) * 1.5);
-            }
         }
 
         .grid-item img {
@@ -168,7 +159,6 @@
             </nav>
         </header>
 
-        <!-- 修改为 masonry-grid 容器 -->
         <main id="gallery" class="masonry-grid">
             <!-- 脚本生成内容 -->
         </main>
@@ -213,13 +203,6 @@
                 const item = document.createElement('div');
                 
                 let classes = ['grid-item'];
-                
-                // 在瀑布流中，我们偶尔使用 featured 来打破单一感
-                // 第一张作为大幅开场
-                if (index === 0) {
-                    classes.push('featured');
-                }
-                
                 item.className = classes.join(' ');
                 
                 const encodedFileName = encodeURIComponent(fileName);
