@@ -15,7 +15,7 @@
         :root {
             --bg-main: #fcfcfc; 
             --text-main: #111111;
-            --grid-gap: 1.5rem; /* 间距 */
+            --grid-gap: 1.5rem; 
         }
 
         body {
@@ -51,6 +51,7 @@
         .nav-link {
             position: relative;
             padding-bottom: 4px;
+            cursor: pointer;
         }
         .nav-link::after {
             content: '';
@@ -67,7 +68,7 @@
             width: 100%;
         }
 
-        /* --- 稳定的瀑布流布局 (Fixed Column Masonry) --- */
+        /* --- 稳定的瀑布流布局 --- */
         .masonry-container {
             display: flex;
             gap: var(--grid-gap);
@@ -83,25 +84,24 @@
 
         .grid-item {
             position: relative;
-            background: #f4f4f4; /* 基础占位色 */
+            background: #f4f4f4; 
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
             display: flex;
             flex-direction: column;
             cursor: pointer;
             width: 100%;
-            overflow: hidden; /* 确保缩放不溢出 */
+            overflow: hidden; 
         }
 
-        /* 鼠标悬停时的白色蒙版效果 */
+        /* 鼠标悬停时的白色蒙版效果 - 全覆盖 & 透明度 0.1 */
         .grid-item::after {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            /* 蒙版高度仅覆盖图片区域（不含下方文字） */
-            height: calc(100% - 2.5rem); 
-            background: rgba(255, 255, 255, 0.2);
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
             opacity: 0;
             transition: opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1);
             pointer-events: none;
@@ -113,7 +113,6 @@
             height: auto;
             display: block;
             opacity: 0;
-            /* 复合动效：透明度渐变 + 缩放平滑 */
             transition: 
                 opacity 0.8s ease, 
                 transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
@@ -123,24 +122,11 @@
             opacity: 1;
         }
 
-        /* 鼠标悬停动效：放大图片 + 显示白色蒙版 */
         .grid-item:hover img.loaded {
             transform: scale(1.05);
         }
 
         .grid-item:hover::after {
-            opacity: 1;
-        }
-
-        .item-info {
-            padding: 0.75rem 0;
-            color: var(--text-main);
-            opacity: 0.4;
-            transition: opacity 0.4s ease;
-            height: 2.5rem; /* 固定高度以便计算蒙版范围 */
-        }
-
-        .grid-item:hover .item-info {
             opacity: 1;
         }
 
@@ -161,6 +147,15 @@
             text-transform: uppercase;
         }
 
+        /* 页面切换动画 */
+        .page-content {
+            transition: opacity 0.8s ease;
+        }
+        .hidden-page {
+            display: none;
+            opacity: 0;
+        }
+
         ::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
@@ -178,22 +173,56 @@
     <div id="main-wrapper" class="p-6 md:p-12 lg:p-20">
         
         <header class="mb-32 flex flex-col md:flex-row justify-between items-baseline">
-            <div>
-                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4 cursor-default">BUZZ</h1>
+            <div class="cursor-pointer" onclick="showPage('gallery')">
+                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
                 <p class="micro-text text-gray-400">Architectural Visualization / Works</p>
             </div>
             <nav class="mt-8 md:mt-0 flex gap-12 micro-text">
-                <a href="#" class="nav-link">Gallery</a>
-                <a href="#" class="nav-link">Studio</a>
+                <a onclick="showPage('gallery')" class="nav-link">Gallery</a>
+                <a onclick="showPage('studio')" class="nav-link">Studio</a>
                 <a href="mailto:office@buzzvisual.com" class="nav-link font-bold">Contact</a>
             </nav>
         </header>
 
-        <!-- 固定列容器 -->
-        <main id="gallery" class="masonry-container">
-            <div class="masonry-column" id="col-0"></div>
-            <div class="masonry-column" id="col-1"></div>
-            <div class="masonry-column" id="col-2"></div>
+        <!-- 作品集页面 -->
+        <main id="gallery-page" class="page-content">
+            <div class="masonry-container">
+                <div class="masonry-column" id="col-0"></div>
+                <div class="masonry-column" id="col-1"></div>
+                <div class="masonry-column" id="col-2"></div>
+            </div>
+        </main>
+
+        <!-- Studio 介绍页面 (更新为图片中的内容) -->
+        <main id="studio-page" class="page-content hidden-page">
+            <div class="max-w-3xl">
+                <h2 class="text-3xl font-normal mb-16 tracking-tight">Architecture, art, life</h2>
+                
+                <div class="space-y-12 text-lg font-light leading-relaxed text-gray-500">
+                    <p>
+                        The pleasure we get from the visual expression of architecture is like the indispensable source of life.
+                    </p>
+                    
+                    <p>
+                        For more than ten years, we have been exploring visual images that are more in line with the design expression, hoping to bring more sensory image presentation to the architects' design schemes.
+                    </p>
+                    
+                    <p>
+                        Art is the product of spiritual perception and the bridge of soul communication. This is our life and the difference between our life and other carbon based organisms.
+                    </p>
+
+                    <div class="pt-20 grid grid-cols-2 gap-12 micro-text text-gray-400">
+                        <div>
+                            <p class="mb-3 text-black">Services</p>
+                            <p>Stills / Animation / VR</p>
+                        </div>
+                        <div>
+                            <p class="mb-3 text-black">Contact</p>
+                            <p>office@buzzvisual.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-300">
@@ -211,6 +240,28 @@
         ];
 
         const version = Date.now();
+
+        function showPage(pageId) {
+            const galleryPage = document.getElementById('gallery-page');
+            const studioPage = document.getElementById('studio-page');
+            
+            if (pageId === 'studio') {
+                galleryPage.style.opacity = '0';
+                setTimeout(() => {
+                    galleryPage.classList.add('hidden-page');
+                    studioPage.classList.remove('hidden-page');
+                    setTimeout(() => studioPage.style.opacity = '1', 50);
+                }, 400);
+            } else {
+                studioPage.style.opacity = '0';
+                setTimeout(() => {
+                    studioPage.classList.add('hidden-page');
+                    galleryPage.classList.remove('hidden-page');
+                    setTimeout(() => galleryPage.style.opacity = '1', 50);
+                }, 400);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         function startLoader() {
             let count = 0;
@@ -236,14 +287,12 @@
                 document.getElementById('col-2')
             ];
 
-            // 针对移动端，如果屏幕太窄，只使用两列
             if (window.innerWidth < 1024) {
                 const col2 = document.getElementById('col-2');
                 if (col2) col2.style.display = 'none';
             }
 
             IMAGE_ORDER.forEach((imgId, index) => {
-                // 决定分发到哪一列 (移动端 2 列，桌面端 3 列)
                 const colCount = window.innerWidth < 1024 ? 2 : 3;
                 const colIndex = index % colCount;
                 const targetColumn = columns[colIndex];
@@ -263,22 +312,13 @@
 
                 const img = new Image();
                 img.src = finalSrc;
-                
                 img.onload = () => {
                     img.classList.add('loaded');
                     item.style.background = 'transparent';
                 };
-
-                img.onerror = () => {
-                    item.style.display = 'none';
-                };
-
-                const info = document.createElement('div');
-                info.className = 'item-info micro-text';
-                info.innerText = `Ref. ${imgId < 10 ? '0'+imgId : imgId}`;
+                img.onerror = () => item.style.display = 'none';
 
                 item.appendChild(img);
-                item.appendChild(info);
                 targetColumn.appendChild(item);
             });
         }
@@ -288,7 +328,6 @@
             initGallery();
         };
 
-        // 窗口尺寸改变时刷新，以适应列数变化
         let resizeTimer;
         window.onresize = () => {
             clearTimeout(resizeTimer);
