@@ -41,21 +41,21 @@
         .editorial-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr); /* 手机端 2 列 */
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         @media (min-width: 1024px) {
             .editorial-grid {
                 grid-template-columns: repeat(4, 1fr); /* 电脑端 4 列 */
-                grid-auto-rows: 22vw; /* 控制每行基础高度 */
-                gap: 2rem;
+                grid-auto-rows: 20vw; /* 略微缩小行高，让竖构图更显眼 */
+                gap: 1.5rem;
             }
         }
 
         .grid-item {
             position: relative;
             overflow: hidden;
-            background: #f0f0f0;
+            background: #f4f4f4;
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
@@ -66,10 +66,10 @@
                 grid-row: span 2;
             }
             .grid-item.tall {
-                grid-row: span 2;
+                grid-row: span 2; /* 竖构图占两行高度 */
             }
             .grid-item.wide {
-                grid-column: span 2;
+                grid-column: span 2; /* 横构图占两列宽度 */
             }
         }
 
@@ -159,13 +159,22 @@
     </div>
 
     <script>
-        // 你的手动排序数组
-        const IMAGE_ORDER = [
+        // 原始图片数组
+        let IMAGE_ORDER = [
             1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
             17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
             37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
             56, 58, 59, 60, 61, 62, 63, 64
         ];
+
+        // 随机洗牌函数
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         const gallery = document.getElementById('gallery');
         const version = Date.now();
@@ -188,19 +197,25 @@
         }
 
         function initGallery() {
+            // 在渲染前打乱顺序
+            shuffleArray(IMAGE_ORDER);
+
             IMAGE_ORDER.forEach((imgId, index) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
                 
-                // 杂志排版逻辑：根据 index 决定哪张图是“大图”
-                // 这里的规则可以根据你喜欢的节奏修改
                 let classes = ['grid-item', 'cursor-pointer'];
                 
-                // 模拟杂志节奏
-                if (index === 0) classes.push('featured');      // 第一张永远是大图
-                else if (index % 12 === 0) classes.push('featured'); // 每隔12张出一个超大位
-                else if (index % 5 === 0) classes.push('tall');      // 每隔5张出一个竖高位
-                else if (index % 8 === 0) classes.push('wide');      // 每隔8张出一个横宽位
+                // 调整杂志排版节奏，增加竖图(tall)的权重
+                if (index === 0) {
+                    classes.push('featured'); // 第一张大焦点
+                } else if (index % 10 === 0) {
+                    classes.push('featured'); // 偶发性大焦点
+                } else if (index % 3 === 0) {
+                    classes.push('tall');     // 提高竖图频率（每3张出一个）
+                } else if (index % 7 === 0) {
+                    classes.push('wide');     // 较低频率的横图
+                }
                 
                 item.className = classes.join(' ');
                 
@@ -227,7 +242,6 @@
             initGallery();
         };
 
-        // 按 ESC 键关闭预览
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.getElementById('lightbox').style.display = 'none';
