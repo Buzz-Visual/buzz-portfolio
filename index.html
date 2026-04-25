@@ -93,7 +93,6 @@
             overflow: hidden; 
         }
 
-        /* 鼠标悬停时的白色蒙版效果 */
         .grid-item::after {
             content: '';
             position: absolute;
@@ -165,6 +164,17 @@
         .social-icon:hover {
             opacity: 1;
         }
+
+        /* 联系信息浮层或区域 */
+        #contact-section {
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        #contact-section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -188,7 +198,8 @@
             <nav class="mt-8 md:mt-0 flex gap-12 micro-text">
                 <a onclick="showPage('gallery')" class="nav-link">Gallery</a>
                 <a onclick="showPage('studio')" class="nav-link">Studio</a>
-                <a href="mailto:info.buzzvisual@gmail.com" class="nav-link font-bold">Contact</a>
+                <!-- 点击 Contact 直接显示联系信息 -->
+                <a onclick="toggleContact()" class="nav-link font-bold">Contact</a>
             </nav>
         </header>
 
@@ -201,10 +212,10 @@
             </div>
         </main>
 
-        <!-- Studio 介绍页面 -->
+        <!-- Studio 介绍页面 (现在只放介绍文字) -->
         <main id="studio-page" class="page-content hidden-page">
             <div class="max-w-3xl">
-                <h2 class="text-3xl font-normal mb-16 tracking-tight">Architecture, art, life</h2>
+                <h2 class="text-3xl font-normal mb-16 tracking-tight text-black">Architecture, art, life</h2>
                 
                 <div class="space-y-12 text-lg font-light leading-relaxed text-gray-500">
                     <p>
@@ -218,63 +229,69 @@
                     <p>
                         Art is the product of spiritual perception and the bridge of soul communication. This is our life and the difference between our life and other carbon based organisms.
                     </p>
-
-                    <!-- 联系与付款信息区域 -->
-                    <div class="pt-20 grid grid-cols-1 md:grid-cols-2 gap-16 micro-text text-gray-400">
-                        <div class="space-y-8">
-                            <div>
-                                <p class="mb-3 text-black text-xs">Email</p>
-                                <p>info.buzzvisual@gmail.com</p>
-                            </div>
-                            <div>
-                                <p class="mb-3 text-black text-xs">Wechat</p>
-                                <p>18201756846</p>
-                            </div>
-                            <div>
-                                <p class="mb-3 text-black text-xs">Call</p>
-                                <p class="mb-1">+86 18201756846 (Mainland)</p>
-                                <p>+852 44638739 (Hong Kong)</p>
-                            </div>
-                            <div>
-                                <p class="mb-3 text-black text-xs">Location</p>
-                                <p>Shanghai, China</p>
-                            </div>
-                            <div>
-                                <p class="mb-3 text-black text-xs">Follow Us</p>
-                                <div class="flex gap-4">
-                                    <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="hover:text-black">Instagram</a>
-                                    <a href="https://www.behance.net/405654359b463" target="_blank" class="hover:text-black">Behance</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-8">
-                            <div>
-                                <p class="mb-3 text-black text-xs">Services</p>
-                                <p>Stills / Animation / VR</p>
-                            </div>
-                            <div>
-                                <p class="mb-3 text-black text-xs">Payment Terms</p>
-                                <p class="leading-loose">
-                                    50% Deposit / 50% Final balance<br>
-                                    Accept Bank Transfer / WeChat Pay
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
+
+        <!-- 整合后的所有联系方式区域 (由 Contact 触发显示) -->
+        <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
+            <div class="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-20 micro-text text-gray-400">
+                <div class="space-y-10">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Email</p>
+                        <a href="mailto:info.buzzvisual@gmail.com" class="hover:text-black transition-colors">info.buzzvisual@gmail.com</a>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Wechat</p>
+                        <p class="text-gray-500">18201756846</p>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Call</p>
+                        <div class="space-y-2">
+                            <p>+86 18201756846 (Mainland)</p>
+                            <p>+852 44638739 (Hong Kong)</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Location</p>
+                        <p>Shanghai, China</p>
+                    </div>
+                </div>
+
+                <div class="space-y-10">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Follow Us</p>
+                        <div class="flex flex-col gap-3">
+                            <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="hover:text-black flex items-center gap-2">
+                                Instagram ↗
+                            </a>
+                            <a href="https://www.behance.net/405654359b463" target="_blank" class="hover:text-black flex items-center gap-2">
+                                Behance ↗
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Services</p>
+                        <p>Stills / Animation / VR</p>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold">Payment Terms</p>
+                        <p class="leading-loose">
+                            50% Deposit / 50% Final balance<br>
+                            Accept Bank Transfer / WeChat Pay
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300">
             <div class="flex items-center gap-8">
                 <span>BUZZ VISUAL STUDIO</span>
                 <div class="flex gap-4">
-                    <!-- Instagram Icon -->
                     <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-icon">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                     </a>
-                    <!-- Behance Icon -->
                     <a href="https://www.behance.net/405654359b463" target="_blank" class="social-icon">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"/><path d="M3 13a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3"/><path d="M3 9h9"/><path d="M14 12h7a3.5 3.5 0 0 0-7 0z"/><path d="M14 9h7"/></svg>
                     </a>
@@ -294,10 +311,32 @@
 
         const version = Date.now();
 
+        function hideContact() {
+            const contactSection = document.getElementById('contact-section');
+            contactSection.classList.remove('active');
+            setTimeout(() => contactSection.classList.add('hidden-page'), 400);
+        }
+
+        function toggleContact() {
+            const contactSection = document.getElementById('contact-section');
+            if (contactSection.classList.contains('hidden-page')) {
+                contactSection.classList.remove('hidden-page');
+                setTimeout(() => {
+                    contactSection.classList.add('active');
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                }, 50);
+            } else {
+                contactSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
         function showPage(pageId) {
             const galleryPage = document.getElementById('gallery-page');
             const studioPage = document.getElementById('studio-page');
             
+            // 切换页面时默认隐藏联系方式区域，除非是显式点击了 Contact
+            hideContact();
+
             if (pageId === 'studio') {
                 galleryPage.style.opacity = '0';
                 setTimeout(() => {
