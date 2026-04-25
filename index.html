@@ -15,7 +15,7 @@
         :root {
             --bg-main: #fcfcfc; 
             --text-main: #111111;
-            --grid-gap: 1rem; /* 缩小一半以上的间距 */
+            --grid-gap: 1rem; /* 紧凑的间距 */
         }
 
         body {
@@ -67,7 +67,7 @@
             width: 100%;
         }
 
-        /* --- 瀑布流布局 (Masonry Style) --- */
+        /* --- 瀑布流布局 (Masonry) --- */
         .masonry-grid {
             column-count: 2;
             column-gap: var(--grid-gap);
@@ -76,8 +76,7 @@
 
         @media (min-width: 1024px) {
             .masonry-grid {
-                /* 减少列数至 3 列，从而让每张图看起来更大 */
-                column-count: 3;
+                column-count: 3; /* 三列大图排版 */
             }
         }
 
@@ -85,26 +84,32 @@
             break-inside: avoid;
             margin-bottom: var(--grid-gap); 
             position: relative;
-            overflow: hidden;
+            background: #f4f4f4; /* 浅色占位背景 */
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
             display: flex;
             flex-direction: column;
             cursor: pointer;
+            min-height: 100px; /* 初始基础高度 */
         }
 
         .grid-item img {
             width: 100%;
-            height: auto;
+            height: auto; /* 关键：确保匹配图片自身比例 */
             display: block;
-            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            opacity: 0;
+            transition: opacity 1s ease, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        .grid-item:hover img {
+        .grid-item img.loaded {
+            opacity: 1;
+        }
+
+        .grid-item:hover img.loaded {
             transform: scale(1.03);
         }
 
         .item-info {
-            margin-top: 0.75rem;
+            padding: 0.75rem 0;
             color: var(--text-main);
             opacity: 0.4;
             transition: opacity 0.4s ease;
@@ -160,7 +165,7 @@
         </header>
 
         <main id="gallery" class="masonry-grid">
-            <!-- 脚本生成内容 -->
+            <!-- 脚本动态生成 -->
         </main>
 
         <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-300">
@@ -198,12 +203,10 @@
         }
 
         function initGallery() {
-            IMAGE_ORDER.forEach((imgId, index) => {
+            IMAGE_ORDER.forEach((imgId) => {
                 const fileName = `1 (${imgId}).jpg`;
                 const item = document.createElement('div');
-                
-                let classes = ['grid-item'];
-                item.className = classes.join(' ');
+                item.className = 'grid-item';
                 
                 const encodedFileName = encodeURIComponent(fileName);
                 const finalSrc = `${encodedFileName}?v=${version}`;
@@ -214,12 +217,27 @@
                     document.body.style.overflow = 'hidden';
                 };
 
-                item.innerHTML = `
-                    <img src="${finalSrc}" alt="Project ${imgId}" loading="lazy" onerror="this.parentElement.style.display='none'">
-                    <div class="item-info micro-text">
-                        Ref. ${imgId < 10 ? '0'+imgId : imgId}
-                    </div>
-                `;
+                const img = new Image();
+                img.src = finalSrc;
+                img.alt = `Project ${imgId}`;
+                img.loading = "lazy";
+                
+                // 核心：图片加载完成后再显示，并取消背景占位
+                img.onload = () => {
+                    img.classList.add('loaded');
+                    item.style.background = 'transparent';
+                };
+
+                img.onerror = () => {
+                    item.style.display = 'none';
+                };
+
+                const info = document.createElement('div');
+                info.className = 'item-info micro-text';
+                info.innerText = `Ref. ${imgId < 10 ? '0'+imgId : imgId}`;
+
+                item.appendChild(img);
+                item.appendChild(info);
                 gallery.appendChild(item);
             });
         }
