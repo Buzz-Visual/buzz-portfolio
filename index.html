@@ -317,7 +317,13 @@
     </div>
 
     <script>
-        // 原始图片序列
+        /**
+         * 锁定顺序指南：
+         * 1. 刷新页面直到看到满意的图片排列。
+         * 2. 打开控制台（F12 -> Console），复制 [CURRENT ORDER] 后的数组。
+         * 3. 将数组粘贴到下方的 IMAGE_ORDER 中。
+         * 4. 注释掉 initGallery 函数中的 shuffleArray(IMAGE_ORDER); 这一行。
+         */
         let IMAGE_ORDER = [
             1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
             17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
@@ -325,7 +331,6 @@
             56, 58, 59, 60, 61, 62, 63, 64
         ];
 
-        // Fisher-Yates 洗牌算法：随机打乱数组顺序
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -412,8 +417,14 @@
                 if (col2) col2.style.display = 'none';
             }
 
-            // 在渲染前打乱图片顺序
+            // 1. 先进行随机洗牌（如果要锁定，请注释掉下面这一行）
             shuffleArray(IMAGE_ORDER);
+
+            // 2. 将当前生成的顺序打印到控制台，方便你记录
+            console.log("--- BUZZ LAYOUT TOOL ---");
+            console.log("如果您满意当前的图片排列，请复制下方的数组并更新代码中的 IMAGE_ORDER:");
+            console.log("[CURRENT ORDER]:", JSON.stringify(IMAGE_ORDER));
+            console.log("------------------------");
 
             IMAGE_ORDER.forEach((imgId, index) => {
                 const colIndex = index % colCount;
