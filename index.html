@@ -29,6 +29,7 @@
             scrollbar-color: rgba(0,0,0,0.2) transparent;
         }
 
+        /* 优化滚动条外观 */
         body::-webkit-scrollbar {
             width: 8px;
         }
@@ -160,39 +161,73 @@
             padding-bottom: 5rem;
         }
 
-        /* 链接交互优化 */
         .social-link {
             transition: color 0.3s ease;
         }
         .social-link:hover {
             color: #000;
         }
+
+        /* --- 商业转化按钮样式 (CTA) --- */
+        .btn-cta {
+            background-color: var(--text-main);
+            color: var(--bg-main);
+            padding: 0.6rem 1.2rem;
+            border-radius: 2px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .btn-cta:hover {
+            background-color: #333;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
 
+    <!-- 加载动画 -->
     <div id="loader">
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
-        <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-0" src="">
-        <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity">Close ✕</div>
+    <!-- 灯箱预览 -->
+    <div id="lightbox" onclick="if(event.target === this) { this.style.display='none'; document.body.style.overflow='auto'; }">
+        <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-6" src="">
+        <!-- 惊艳时刻的直接询盘引导 (不破坏外部排版) -->
+        <a href="mailto:info.buzzvisual@gmail.com" class="btn-cta micro-text tracking-widest z-50">GET A FREE QUOTE</a>
+        <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity cursor-pointer" onclick="document.getElementById('lightbox').style.display='none'; document.body.style.overflow='auto';">Close ✕</div>
     </div>
 
     <div id="main-wrapper">
-        <header class="mb-32 flex flex-col md:flex-row justify-between items-baseline">
-            <div class="cursor-pointer" onclick="showPage('gallery')">
+        <header class="mb-32 flex flex-col lg:flex-row justify-between items-baseline gap-8">
+            <div class="cursor-pointer shrink-0" onclick="showPage('gallery')">
                 <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
                 <p class="micro-text text-gray-400">Architectural Visualization / Works</p>
             </div>
-            <nav class="mt-8 md:mt-0 flex gap-12 micro-text">
-                <a onclick="showPage('gallery')" class="nav-link">Gallery</a>
-                <a onclick="showPage('studio')" class="nav-link">Studio</a>
-                <a onclick="toggleContact()" class="nav-link font-bold">Contact</a>
-            </nav>
+            
+            <div class="flex flex-col lg:items-end gap-6 mt-8 lg:mt-0">
+                <!-- 多语言小语种切换 (针对拉美/中东市场) -->
+                <div class="micro-text flex gap-4 text-gray-400 font-bold">
+                    <span class="text-black cursor-pointer">EN</span>
+                    <span class="cursor-pointer hover:text-black transition-colors" title="Spanish (LatAm)">ES</span>
+                    <span class="cursor-pointer hover:text-black transition-colors" title="Portuguese (LatAm)">PT</span>
+                    <span class="cursor-pointer hover:text-black transition-colors" title="Arabic (Middle East)">AR</span>
+                </div>
+
+                <!-- 导航与行动呼吁 (全局悬浮感) -->
+                <nav class="flex flex-wrap items-center gap-6 lg:gap-8 micro-text">
+                    <a onclick="showPage('gallery')" class="nav-link">Gallery</a>
+                    <a onclick="showPage('studio')" class="nav-link">Studio</a>
+                    <a onclick="toggleContact()" class="nav-link font-bold">Contact</a>
+                    <a href="mailto:info.buzzvisual@gmail.com" class="btn-cta tracking-widest lg:ml-2">GET A FREE QUOTE</a>
+                </nav>
+            </div>
         </header>
 
+        <!-- 作品画廊页 -->
         <main id="gallery-page" class="page-content">
             <div class="masonry-container">
                 <div class="masonry-column" id="col-0"></div>
@@ -201,18 +236,24 @@
             </div>
         </main>
 
+        <!-- 工作室介绍页 -->
         <main id="studio-page" class="page-content hidden-page">
             <div class="max-w-3xl">
-                <h2 class="text-3xl font-normal mb-16 tracking-tight text-black">Architecture, art, life</h2>
+                <!-- 商业化文案重塑：切中痛点 -->
+                <h2 class="text-3xl font-normal mb-16 tracking-tight text-black">High-Quality Architectural Visualization</h2>
                 <div class="space-y-12 text-lg font-light leading-relaxed text-gray-500">
-                    <p>The pleasure we get from the visual expression of architecture is like the indispensable source of life.</p>
-                    <p>For more than ten years, we have been exploring visual images that are more in line with the design expression...</p>
-                    <p>Art is the product of spiritual perception and the bridge of soul communication.</p>
+                    <p>With over <strong class="text-black">10 years of professional experience</strong> in architectural visualization, we specialize in delivering high-impact imagery for design firms and real estate developers worldwide.</p>
+                    <p>We understand the fast-paced nature of the industry. Our core advantages lie in <strong class="text-black">High Cost-Performance</strong> and <strong class="text-black">Efficient Delivery</strong>, ensuring your design vision is communicated flawlessly without compromising on quality or strict deadlines.</p>
+                    <p>Whether it's for pitch presentations, marketing campaigns, or design reviews, BUZZ is your reliable partner in transforming concepts into compelling commercial realities.</p>
+                </div>
+                <!-- 强行动呼吁 (CTA) -->
+                <div class="mt-16">
+                    <a href="mailto:info.buzzvisual@gmail.com" class="btn-cta micro-text tracking-widest px-8 py-4">BOOK A CONSULTATION</a>
                 </div>
             </div>
         </main>
 
-        <!-- 完整的联系方式区域 -->
+        <!-- 联系方式区域 -->
         <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
             <div class="max-w-6xl grid grid-cols-1 md:grid-cols-4 gap-12 micro-text text-gray-400">
                 <div class="space-y-8">
@@ -236,8 +277,9 @@
                     <div>
                         <p class="mb-4 text-black text-xs font-bold">Social</p>
                         <div class="flex flex-col gap-2">
+                            <!-- 如果你要改社交媒体链接，修改下面引号里的网址即可 -->
                             <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-link">Instagram</a>
-                            <a href="https://www.behance.net/buzzvisual" target="_blank" class="social-link">Behance</a>
+                            <a href="https://www.behance.net/405654359b463" target="_blank" class="social-link">Behance</a>
                         </div>
                     </div>
                 </div>
@@ -327,11 +369,16 @@
                 document.getElementById('col-1'), 
                 document.getElementById('col-2')
             ];
+            
+            // 安全检查，防止在 DOM 中找不到元素时报错
+            if (!columnElements[0] || !columnElements[1]) return;
+
             const isMobile = window.innerWidth < 1024;
             const colCount = isMobile ? 2 : 3;
             let colHeights = new Array(colCount).fill(0);
 
-            if (isMobile) document.getElementById('col-2').style.display = 'none';
+            const col2 = document.getElementById('col-2');
+            if (isMobile && col2) col2.style.display = 'none';
 
             const loadedMetadata = {};
             let nextIndexToRender = 0;
@@ -353,6 +400,11 @@
                     }
 
                     const targetColumn = columnElements[minHeightIndex];
+                    if (!targetColumn) {
+                        nextIndexToRender++;
+                        continue;
+                    }
+
                     const item = document.createElement('div');
                     item.className = 'grid-item';
                     const ratio = (height / width) * 100;
