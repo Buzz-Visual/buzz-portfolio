@@ -10,7 +10,7 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Noto+Sans+SC:wght@100;300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&family=Noto+Sans+SC:wght@100;300;400&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-main: #fcfcfc; 
@@ -27,12 +27,6 @@
             overflow-x: hidden;
             scrollbar-width: thin;
             scrollbar-color: rgba(0,0,0,0.2) transparent;
-            transition: direction 0.3s;
-        }
-
-        /* 阿拉伯语右对齐适配 */
-        body[dir="rtl"] {
-            text-align: right;
         }
 
         /* 优化滚动条外观 */
@@ -49,6 +43,17 @@
         }
         body::-webkit-scrollbar-thumb:hover {
             background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        /* 阿拉伯语精细化适配：仅反转文本方向，不翻转网页框架布局 */
+        body.lang-ar [data-i18n],
+        body.lang-ar input,
+        body.lang-ar textarea {
+            direction: rtl;
+            text-align: right;
+        }
+        body.lang-ar .btn-cta {
+            text-align: center; /* 按钮文字保持居中 */
         }
 
         #loader {
@@ -233,26 +238,26 @@
         <div class="bg-white w-[90%] max-w-xl p-10 md:p-14 relative cursor-default" onclick="event.stopPropagation()">
             <div class="absolute top-6 right-6 cursor-pointer text-gray-400 hover:text-black text-xl" onclick="closeQuoteModal()">✕</div>
             
-            <h3 class="text-2xl font-normal mb-8 force-upper" data-i18n="modal_title">GET A FREE QUOTE</h3>
+            <h3 class="text-2xl font-normal mb-8 force-upper text-center" data-i18n="modal_title">GET A FREE QUOTE</h3>
             
-            <!-- 表单区域：加入了 name 属性以便 Formspree 识别数据 -->
+            <!-- 表单区域：优化了字体大小和阅读体验 -->
             <form id="quote-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
                 <div>
-                    <label class="block micro-text text-gray-500 mb-2 force-upper" data-i18n="modal_name">Name / Company</label>
-                    <input type="text" name="Client_Name" required class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-black transition-colors bg-transparent text-sm">
+                    <label class="block text-xs font-semibold tracking-[0.15em] text-gray-500 mb-3 force-upper" data-i18n="modal_name">Name / Company</label>
+                    <input type="text" name="Client_Name" required class="w-full border-b border-gray-300 py-3 focus:outline-none focus:border-black transition-colors bg-transparent text-base">
                 </div>
                 <div>
-                    <label class="block micro-text text-gray-500 mb-2 force-upper" data-i18n="modal_contact">WhatsApp / WeChat / Email</label>
-                    <input type="text" name="Contact_Info" required class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-black transition-colors bg-transparent text-sm">
+                    <label class="block text-xs font-semibold tracking-[0.15em] text-gray-500 mb-3 force-upper" data-i18n="modal_contact">WhatsApp / WeChat / Email</label>
+                    <input type="text" name="Contact_Info" required class="w-full border-b border-gray-300 py-3 focus:outline-none focus:border-black transition-colors bg-transparent text-base">
                 </div>
                 <div>
-                    <label class="block micro-text text-gray-500 mb-2 force-upper" data-i18n="modal_desc">Project Details</label>
-                    <textarea name="Project_Details" required rows="3" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-black transition-colors bg-transparent resize-none text-sm"></textarea>
+                    <label class="block text-xs font-semibold tracking-[0.15em] text-gray-500 mb-3 force-upper" data-i18n="modal_desc">Project Details</label>
+                    <textarea name="Project_Details" required rows="3" class="w-full border-b border-gray-300 py-3 focus:outline-none focus:border-black transition-colors bg-transparent resize-none text-base"></textarea>
                 </div>
                 <!-- 防止恶意机器人提交的隐藏字段 -->
                 <input type="hidden" name="_subject" value="New Quote Request from BUZZ Website!">
                 
-                <button id="submit-btn" type="submit" class="btn-cta w-full micro-text tracking-widest mt-4 force-upper cursor-pointer" data-i18n="modal_submit">SEND REQUEST</button>
+                <button id="submit-btn" type="submit" class="btn-cta w-full text-xs font-semibold tracking-[0.2em] py-4 mt-4 force-upper cursor-pointer" data-i18n="modal_submit">SEND REQUEST</button>
             </form>
 
             <!-- 成功提示区域 (默认隐藏) -->
@@ -260,7 +265,7 @@
                 <svg class="w-16 h-16 text-green-600 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"></path></svg>
                 <h4 class="text-xl font-normal mb-3" data-i18n="modal_success_title">Request Sent</h4>
                 <p class="text-gray-500 text-sm mb-8 leading-relaxed" data-i18n="modal_success_desc">Thank you for reaching out. Our team will get back to you shortly.</p>
-                <button onclick="closeQuoteModal()" class="btn-cta micro-text tracking-widest force-upper cursor-pointer">CLOSE</button>
+                <button onclick="closeQuoteModal()" class="btn-cta text-xs font-semibold tracking-[0.2em] px-8 py-3 force-upper cursor-pointer">CLOSE</button>
             </div>
         </div>
     </div>
@@ -268,34 +273,34 @@
     <div id="main-wrapper">
         <header class="mb-32 flex flex-col lg:flex-row justify-between items-baseline gap-8">
             <div class="cursor-pointer shrink-0" onclick="showPage('gallery')">
-                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4" dir="ltr">BUZZ</h1>
+                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
                 <p class="micro-text text-gray-400" data-i18n="header_sub">Architectural Visualization / Works</p>
             </div>
             
             <div class="flex flex-col lg:items-end gap-6 mt-8 lg:mt-0">
                 <!-- 优雅的多语言下拉菜单 -->
-                <div class="relative group z-50" dir="ltr">
+                <div class="relative group z-50">
                     <button class="micro-text text-black font-bold flex items-center gap-2 pb-2 cursor-pointer">
                         <span id="current-lang-display">EN</span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
                     </button>
                     <div class="dropdown-menu absolute right-0 top-full bg-white border border-gray-100 shadow-2xl flex flex-col min-w-[160px] max-h-[60vh] overflow-y-auto z-50">
-                        <a onclick="setLanguage('en')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">EN - English</a>
-                        <a onclick="setLanguage('zh_cn')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ZH - 简体中文</a>
-                        <a onclick="setLanguage('zh_tw')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TW - 繁體中文</a>
-                        <a onclick="setLanguage('es')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ES - Español</a>
-                        <a onclick="setLanguage('pt')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">PT - Português</a>
-                        <a onclick="setLanguage('ar')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">AR - العربية</a>
-                        <a onclick="setLanguage('tr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TR - Türkçe</a>
-                        <a onclick="setLanguage('id')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ID - Indonesia</a>
-                        <a onclick="setLanguage('vi')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">VI - Tiếng Việt</a>
-                        <a onclick="setLanguage('th')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TH - ไทย</a>
-                        <a onclick="setLanguage('de')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">DE - Deutsch</a>
-                        <a onclick="setLanguage('fr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">FR - Français</a>
-                        <a onclick="setLanguage('no')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">NO - Norsk</a>
-                        <a onclick="setLanguage('ko')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">KO - 한국어</a>
-                        <a onclick="setLanguage('ja')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">JA - 日本語</a>
-                        <a onclick="setLanguage('it')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">IT - Italiano</a>
+                        <a onclick="setLanguage('en')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">EN - English</a>
+                        <a onclick="setLanguage('zh_cn')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">ZH - 简体中文</a>
+                        <a onclick="setLanguage('zh_tw')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">TW - 繁體中文</a>
+                        <a onclick="setLanguage('es')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">ES - Español</a>
+                        <a onclick="setLanguage('pt')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">PT - Português</a>
+                        <a onclick="setLanguage('ar')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">AR - العربية</a>
+                        <a onclick="setLanguage('tr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">TR - Türkçe</a>
+                        <a onclick="setLanguage('id')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">ID - Indonesia</a>
+                        <a onclick="setLanguage('vi')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">VI - Tiếng Việt</a>
+                        <a onclick="setLanguage('th')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">TH - ไทย</a>
+                        <a onclick="setLanguage('de')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">DE - Deutsch</a>
+                        <a onclick="setLanguage('fr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">FR - Français</a>
+                        <a onclick="setLanguage('no')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">NO - Norsk</a>
+                        <a onclick="setLanguage('ko')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">KO - 한국어</a>
+                        <a onclick="setLanguage('ja')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">JA - 日本語</a>
+                        <a onclick="setLanguage('it')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black text-left">IT - Italiano</a>
                     </div>
                 </div>
 
@@ -347,12 +352,12 @@
                 <div class="space-y-8">
                     <div>
                         <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_email">Email</p>
-                        <a href="mailto:info.buzzvisual@gmail.com" class="social-link" dir="ltr">info.buzzvisual@gmail.com</a>
+                        <a href="mailto:info.buzzvisual@gmail.com" class="social-link">info.buzzvisual@gmail.com</a>
                     </div>
                     <div>
                         <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_phone">Phone</p>
-                        <p class="mb-2" dir="ltr">+86 182 0175 6846</p>
-                        <p dir="ltr">+852 4463 8739 (HK)</p>
+                        <p class="mb-2">+86 182 0175 6846</p>
+                        <p>+852 4463 8739 (HK)</p>
                     </div>
                 </div>
                 <div class="space-y-8">
@@ -367,15 +372,15 @@
                 <div class="space-y-8">
                     <div>
                         <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_wechat">Wechat</p>
-                        <p class="text-gray-500 font-medium" dir="ltr">18201756846</p>
+                        <p class="text-gray-500 font-medium">18201756846</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300 force-upper">
-            <span dir="ltr">BUZZ VISUAL STUDIO</span>
-            <span dir="ltr">© 2022</span>
+            <span>BUZZ VISUAL STUDIO</span>
+            <span>© 2022</span>
         </footer>
     </div>
 
@@ -655,10 +660,11 @@
             const displayCode = langCode.includes('_') ? langCode.split('_')[0].toUpperCase() : langCode.toUpperCase();
             document.getElementById('current-lang-display').innerText = displayCode;
             
+            // 精确控制阿拉伯语排版，不再强制翻转整个网站架构
             if (langCode === 'ar') {
-                document.body.setAttribute('dir', 'rtl');
+                document.body.classList.add('lang-ar');
             } else {
-                document.body.setAttribute('dir', 'ltr');
+                document.body.classList.remove('lang-ar');
             }
 
             const elements = document.querySelectorAll('[data-i18n]');
