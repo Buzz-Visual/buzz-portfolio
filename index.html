@@ -27,6 +27,12 @@
             overflow-x: hidden;
             scrollbar-width: thin;
             scrollbar-color: rgba(0,0,0,0.2) transparent;
+            transition: direction 0.3s;
+        }
+
+        /* 阿拉伯语右对齐适配 */
+        body[dir="rtl"] {
+            text-align: right;
         }
 
         /* 优化滚动条外观 */
@@ -150,6 +156,10 @@
             letter-spacing: 0.4em;
             text-transform: uppercase;
         }
+        /* 针对部分不支持小写转换的语言，强制大写 */
+        .force-upper {
+            text-transform: uppercase;
+        }
 
         .page-content { transition: opacity 0.8s ease; }
         .hidden-page { display: none; opacity: 0; }
@@ -184,6 +194,19 @@
             background-color: #333;
             transform: translateY(-1px);
         }
+
+        /* 下拉菜单动画 */
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .group:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -197,32 +220,50 @@
     <div id="lightbox" onclick="if(event.target === this) { this.style.display='none'; document.body.style.overflow='auto'; }">
         <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-6" src="">
         <!-- 惊艳时刻的直接询盘引导 (不破坏外部排版) -->
-        <a href="mailto:info.buzzvisual@gmail.com" class="btn-cta micro-text tracking-widest z-50">GET A FREE QUOTE</a>
-        <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity cursor-pointer" onclick="document.getElementById('lightbox').style.display='none'; document.body.style.overflow='auto';">Close ✕</div>
+        <a onclick="getFreeQuote()" class="btn-cta micro-text tracking-widest z-50 force-upper cursor-pointer" data-i18n="btn_quote">GET A FREE QUOTE</a>
+        <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity cursor-pointer force-upper" onclick="document.getElementById('lightbox').style.display='none'; document.body.style.overflow='auto';">Close ✕</div>
     </div>
 
     <div id="main-wrapper">
         <header class="mb-32 flex flex-col lg:flex-row justify-between items-baseline gap-8">
             <div class="cursor-pointer shrink-0" onclick="showPage('gallery')">
-                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
-                <p class="micro-text text-gray-400">Architectural Visualization / Works</p>
+                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4" dir="ltr">BUZZ</h1>
+                <p class="micro-text text-gray-400" data-i18n="header_sub">Architectural Visualization / Works</p>
             </div>
             
             <div class="flex flex-col lg:items-end gap-6 mt-8 lg:mt-0">
-                <!-- 多语言小语种切换 (针对拉美/中东市场) -->
-                <div class="micro-text flex gap-4 text-gray-400 font-bold">
-                    <span class="text-black cursor-pointer">EN</span>
-                    <span class="cursor-pointer hover:text-black transition-colors" title="Spanish (LatAm)">ES</span>
-                    <span class="cursor-pointer hover:text-black transition-colors" title="Portuguese (LatAm)">PT</span>
-                    <span class="cursor-pointer hover:text-black transition-colors" title="Arabic (Middle East)">AR</span>
+                <!-- 优雅的多语言下拉菜单 -->
+                <div class="relative group z-50" dir="ltr">
+                    <button class="micro-text text-black font-bold flex items-center gap-2 pb-2 cursor-pointer">
+                        <span id="current-lang-display">EN</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute right-0 top-full bg-white border border-gray-100 shadow-2xl flex flex-col min-w-[160px] max-h-[60vh] overflow-y-auto z-50">
+                        <a onclick="setLanguage('en')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">EN - English</a>
+                        <a onclick="setLanguage('zh_cn')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ZH - 简体中文</a>
+                        <a onclick="setLanguage('zh_tw')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TW - 繁體中文</a>
+                        <a onclick="setLanguage('es')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ES - Español</a>
+                        <a onclick="setLanguage('pt')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">PT - Português</a>
+                        <a onclick="setLanguage('ar')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">AR - العربية</a>
+                        <a onclick="setLanguage('tr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TR - Türkçe</a>
+                        <a onclick="setLanguage('id')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ID - Indonesia</a>
+                        <a onclick="setLanguage('vi')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">VI - Tiếng Việt</a>
+                        <a onclick="setLanguage('th')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TH - ไทย</a>
+                        <a onclick="setLanguage('de')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">DE - Deutsch</a>
+                        <a onclick="setLanguage('fr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">FR - Français</a>
+                        <a onclick="setLanguage('no')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">NO - Norsk</a>
+                        <a onclick="setLanguage('ko')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">KO - 한국어</a>
+                        <a onclick="setLanguage('ja')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">JA - 日本語</a>
+                        <a onclick="setLanguage('it')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">IT - Italiano</a>
+                    </div>
                 </div>
 
-                <!-- 导航与行动呼吁 (全局悬浮感) -->
-                <nav class="flex flex-wrap items-center gap-6 lg:gap-8 micro-text">
-                    <a onclick="showPage('gallery')" class="nav-link">Gallery</a>
-                    <a onclick="showPage('studio')" class="nav-link">Studio</a>
-                    <a onclick="toggleContact()" class="nav-link font-bold">Contact</a>
-                    <a href="mailto:info.buzzvisual@gmail.com" class="btn-cta tracking-widest lg:ml-2">GET A FREE QUOTE</a>
+                <!-- 导航与行动呼吁 -->
+                <nav class="flex flex-wrap items-center gap-6 lg:gap-8 micro-text force-upper">
+                    <a onclick="showPage('gallery')" class="nav-link" data-i18n="nav_gallery">Gallery</a>
+                    <a onclick="showPage('studio')" class="nav-link" data-i18n="nav_studio">Studio</a>
+                    <a onclick="toggleContact()" class="nav-link font-bold" data-i18n="nav_contact">Contact</a>
+                    <a onclick="getFreeQuote()" class="btn-cta tracking-widest lg:ml-2 cursor-pointer" data-i18n="btn_quote">GET A FREE QUOTE</a>
                 </nav>
             </div>
         </header>
@@ -240,15 +281,15 @@
         <main id="studio-page" class="page-content hidden-page">
             <div class="max-w-3xl">
                 <!-- 商业化文案重塑：切中痛点 -->
-                <h2 class="text-3xl font-normal mb-16 tracking-tight text-black">High-Quality Architectural Visualization</h2>
+                <h2 class="text-3xl font-normal mb-16 tracking-tight text-black" data-i18n="studio_title">High-Quality Architectural Visualization</h2>
                 <div class="space-y-12 text-lg font-light leading-relaxed text-gray-500">
-                    <p>With over <strong class="text-black">10 years of professional experience</strong> in architectural visualization, we specialize in delivering high-impact imagery for design firms and real estate developers worldwide.</p>
-                    <p>We understand the fast-paced nature of the industry. Our core advantages lie in <strong class="text-black">High Cost-Performance</strong> and <strong class="text-black">Efficient Delivery</strong>, ensuring your design vision is communicated flawlessly without compromising on quality or strict deadlines.</p>
-                    <p>Whether it's for pitch presentations, marketing campaigns, or design reviews, BUZZ is your reliable partner in transforming concepts into compelling commercial realities.</p>
+                    <p data-i18n="studio_p1">With over <strong class="text-black">10 years of professional experience</strong> in architectural visualization, we specialize in delivering high-impact imagery for design firms and real estate developers worldwide.</p>
+                    <p data-i18n="studio_p2">We understand the fast-paced nature of the industry. Our core advantages lie in <strong class="text-black">High Cost-Performance</strong> and <strong class="text-black">Efficient Delivery</strong>, ensuring your design vision is communicated flawlessly without compromising on quality or strict deadlines.</p>
+                    <p data-i18n="studio_p3">Whether it's for pitch presentations, marketing campaigns, or design reviews, BUZZ is your reliable partner in transforming concepts into compelling commercial realities.</p>
                 </div>
                 <!-- 强行动呼吁 (CTA) -->
                 <div class="mt-16">
-                    <a href="mailto:info.buzzvisual@gmail.com" class="btn-cta micro-text tracking-widest px-8 py-4">BOOK A CONSULTATION</a>
+                    <a onclick="bookConsultation()" class="btn-cta micro-text tracking-widest px-8 py-4 force-upper cursor-pointer" data-i18n="btn_consult">BOOK A CONSULTATION</a>
                 </div>
             </div>
         </main>
@@ -258,47 +299,265 @@
             <div class="max-w-6xl grid grid-cols-1 md:grid-cols-4 gap-12 micro-text text-gray-400">
                 <div class="space-y-8">
                     <div>
-                        <p class="mb-4 text-black text-xs font-bold">Address</p>
-                        <p class="leading-relaxed">SHANGHAI, CHINA</p>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_address">Address</p>
+                        <p class="leading-relaxed force-upper" data-i18n="val_address">SHANGHAI, CHINA</p>
                     </div>
                 </div>
                 <div class="space-y-8">
                     <div>
-                        <p class="mb-4 text-black text-xs font-bold">Email</p>
-                        <a href="mailto:info.buzzvisual@gmail.com" class="social-link">info.buzzvisual@gmail.com</a>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_email">Email</p>
+                        <a href="mailto:info.buzzvisual@gmail.com" class="social-link" dir="ltr">info.buzzvisual@gmail.com</a>
                     </div>
                     <div>
-                        <p class="mb-4 text-black text-xs font-bold">Phone</p>
-                        <p class="mb-2">+86 182 0175 6846</p>
-                        <p>+852 4463 8739 (HK)</p>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_phone">Phone</p>
+                        <p class="mb-2" dir="ltr">+86 182 0175 6846</p>
+                        <p dir="ltr">+852 4463 8739 (HK)</p>
                     </div>
                 </div>
                 <div class="space-y-8">
                     <div>
-                        <p class="mb-4 text-black text-xs font-bold">Social</p>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_social">Social</p>
                         <div class="flex flex-col gap-2">
-                            <!-- 如果你要改社交媒体链接，修改下面引号里的网址即可 -->
-                            <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-link">Instagram</a>
-                            <a href="https://www.behance.net/405654359b463" target="_blank" class="social-link">Behance</a>
+                            <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-link force-upper">Instagram</a>
+                            <a href="https://www.behance.net/405654359b463" target="_blank" class="social-link force-upper">Behance</a>
                         </div>
                     </div>
                 </div>
                 <div class="space-y-8">
                     <div>
-                        <p class="mb-4 text-black text-xs font-bold">Wechat</p>
-                        <p class="text-gray-500 font-medium">18201756846</p>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_wechat">Wechat</p>
+                        <p class="text-gray-500 font-medium" dir="ltr">18201756846</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300">
-            <span>BUZZ VISUAL STUDIO</span>
-            <span>© 2022</span>
+        <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300 force-upper">
+            <span dir="ltr">BUZZ VISUAL STUDIO</span>
+            <span dir="ltr">© 2022</span>
         </footer>
     </div>
 
     <script>
+        // --- 预填邮件内容功能 ---
+        function getFreeQuote() {
+            const subject = encodeURIComponent("Quote Request: Architectural Visualization");
+            const body = encodeURIComponent("Hi BUZZ Visual team,\n\nI would like to get a free quote for my project.\n\nProject Details:\n- Project Type (e.g., Residential/Commercial): \n- Scope (Images/Animations): \n- Expected Timeline: \n- My WhatsApp/WeChat: \n\nLooking forward to hearing from you!");
+            window.location.href = `mailto:info.buzzvisual@gmail.com?subject=${subject}&body=${body}`;
+        }
+
+        function bookConsultation() {
+            const subject = encodeURIComponent("Consultation Request: Architectural Visualization");
+            const body = encodeURIComponent("Hi BUZZ Visual team,\n\nI would like to book a consultation to discuss an upcoming project.\n\nPlease contact me at:\n- WhatsApp/WeChat/Phone: \n\nThank you!");
+            window.location.href = `mailto:info.buzzvisual@gmail.com?subject=${subject}&body=${body}`;
+        }
+
+        // --- 多语言翻译字典 ---
+        const translations = {
+            en: {
+                header_sub: "Architectural Visualization / Works",
+                nav_gallery: "Gallery", nav_studio: "Studio", nav_contact: "Contact", btn_quote: "GET A FREE QUOTE",
+                studio_title: "High-Quality Architectural Visualization",
+                studio_p1: "With over <strong class='text-black'>10 years of professional experience</strong> in architectural visualization, we specialize in delivering high-impact imagery for design firms and real estate developers worldwide.",
+                studio_p2: "We understand the fast-paced nature of the industry. Our core advantages lie in <strong class='text-black'>High Cost-Performance</strong> and <strong class='text-black'>Efficient Delivery</strong>, ensuring your design vision is communicated flawlessly without compromising on quality or strict deadlines.",
+                studio_p3: "Whether it's for pitch presentations, marketing campaigns, or design reviews, BUZZ is your reliable partner in transforming concepts into compelling commercial realities.",
+                btn_consult: "BOOK A CONSULTATION",
+                lbl_address: "Address", val_address: "SHANGHAI, CHINA",
+                lbl_email: "Email", lbl_phone: "Phone", lbl_social: "Social", lbl_wechat: "Wechat"
+            },
+            zh_cn: {
+                header_sub: "建筑视觉表现 / 作品集",
+                nav_gallery: "作品", nav_studio: "工作室", nav_contact: "联系我们", btn_quote: "免费获取报价",
+                studio_title: "高品质建筑视觉表现",
+                studio_p1: "我们在建筑视觉表现领域拥有<strong class='text-black'>十余年专业经验</strong>，专注于为全球设计公司和房地产开发商提供极具视觉冲击力的图像。",
+                studio_p2: "我们深知行业的快节奏。我们的核心优势在于<strong class='text-black'>高性价比</strong>和<strong class='text-black'>高效交付</strong>，确保在不妥协质量和严格时间节点的前提下，完美传达您的设计愿景。",
+                studio_p3: "无论是用于项目竞标、营销推广还是设计汇报，BUZZ 都是您将概念转化为商业现实的可靠合作伙伴。",
+                btn_consult: "预约咨询",
+                lbl_address: "地址", val_address: "中国，上海",
+                lbl_email: "邮箱", lbl_phone: "电话", lbl_social: "社交媒体", lbl_wechat: "微信"
+            },
+            zh_tw: {
+                header_sub: "建築視覺表現 / 作品集",
+                nav_gallery: "作品", nav_studio: "工作室", nav_contact: "聯絡我們", btn_quote: "免費獲取報價",
+                studio_title: "高品質建築視覺表現",
+                studio_p1: "我們在建築視覺表現領域擁有<strong class='text-black'>十餘年專業經驗</strong>，專注於為全球設計公司和房地產開發商提供極具視覺衝擊力的圖像。",
+                studio_p2: "我們深知行業的快節奏。我們的核心優勢在於<strong class='text-black'>高性價比</strong>和<strong class='text-black'>高效交付</strong>，確保在不妥協質量和嚴格時間節點的前提下，完美傳達您的設計願景。",
+                studio_p3: "無論是用於項目競標、行銷推廣還是設計彙報，BUZZ 都是您將概念轉化為商業現實的可靠合作夥伴。",
+                btn_consult: "預約諮詢",
+                lbl_address: "地址", val_address: "中國，上海",
+                lbl_email: "郵箱", lbl_phone: "電話", lbl_social: "社群媒體", lbl_wechat: "微信"
+            },
+            id: {
+                header_sub: "Visualisasi Arsitektur / Karya",
+                nav_gallery: "Galeri", nav_studio: "Studio", nav_contact: "Kontak", btn_quote: "DAPATKAN PENAWARAN GRATIS",
+                studio_title: "Visualisasi Arsitektur Berkualitas Tinggi",
+                studio_p1: "Dengan lebih dari <strong class='text-black'>10 tahun pengalaman profesional</strong>, kami mengkhususkan diri dalam memberikan citra berdampak tinggi untuk perusahaan desain dan pengembang real estat di seluruh dunia.",
+                studio_p2: "Kami memahami sifat industri yang serba cepat. Keunggulan inti kami terletak pada <strong class='text-black'>Kinerja Biaya Tinggi</strong> dan <strong class='text-black'>Pengiriman Efisien</strong>, memastikan visi desain Anda dikomunikasikan tanpa kompromi.",
+                studio_p3: "Baik untuk presentasi, pemasaran, atau tinjauan desain, BUZZ adalah mitra andal Anda dalam mengubah konsep menjadi realitas komersial.",
+                btn_consult: "PESAN KONSULTASI",
+                lbl_address: "Alamat", val_address: "SHANGHAI, TIONGKOK",
+                lbl_email: "Email", lbl_phone: "Telepon", lbl_social: "Sosial", lbl_wechat: "Wechat"
+            },
+            vi: {
+                header_sub: "Trực quan hóa Kiến trúc / Tác phẩm",
+                nav_gallery: "Thư viện", nav_studio: "Studio", nav_contact: "Liên hệ", btn_quote: "NHẬN BÁO GIÁ MIỄN PHÍ",
+                studio_title: "Trực quan hóa Kiến trúc Chất lượng cao",
+                studio_p1: "Với hơn <strong class='text-black'>10 năm kinh nghiệm</strong>, chúng tôi chuyên cung cấp hình ảnh có tác động cao cho các công ty thiết kế và nhà phát triển bất động sản trên toàn thế giới.",
+                studio_p2: "Lợi thế cốt lõi của chúng tôi là <strong class='text-black'>Hiệu quả Chi phí Cao</strong> và <strong class='text-black'>Giao hàng Nhanh chóng</strong>, đảm bảo tầm nhìn thiết kế của bạn được truyền đạt hoàn hảo.",
+                studio_p3: "Cho dù để thuyết trình dự án, tiếp thị hay đánh giá thiết kế, BUZZ là đối tác đáng tin cậy của bạn.",
+                btn_consult: "ĐẶT LỊCH TƯ VẤN",
+                lbl_address: "Địa chỉ", val_address: "THƯỢNG HẢI, TRUNG QUỐC",
+                lbl_email: "Email", lbl_phone: "Điện thoại", lbl_social: "Mạng xã hội", lbl_wechat: "Wechat"
+            },
+            th: {
+                header_sub: "การแสดงภาพทางสถาปัตยกรรม / ผลงาน",
+                nav_gallery: "แกลเลอรี", nav_studio: "สตูดิโอ", nav_contact: "ติดต่อ", btn_quote: "รับใบเสนอราคาฟรี",
+                studio_title: "การแสดงภาพทางสถาปัตยกรรมคุณภาพสูง",
+                studio_p1: "ด้วยประสบการณ์กว่า <strong class='text-black'>10 ปี</strong> เราเชี่ยวชาญในการสร้างสรรค์ภาพที่ทรงพลังสำหรับบริษัทออกแบบและนักพัฒนาอสังหาริมทรัพย์ทั่วโลก",
+                studio_p2: "ข้อได้เปรียบหลักของเราคือ <strong class='text-black'>ความคุ้มค่าสูง</strong> และ <strong class='text-black'>การส่งมอบที่รวดเร็ว</strong> เพื่อให้มั่นใจว่าวิสัยทัศน์ของคุณจะถูกสื่อสารอย่างสมบูรณ์แบบโดยไม่ลดทอนคุณภาพ",
+                studio_p3: "ไม่ว่าจะเป็นการนำเสนอโปรเจกต์ หรือแคมเปญการตลาด BUZZ คือพันธมิตรที่เชื่อถือได้ของคุณ",
+                btn_consult: "จองคิวรับคำปรึกษา",
+                lbl_address: "ที่อยู่", val_address: "เซี่ยงไฮ้, จีน",
+                lbl_email: "อีเมล", lbl_phone: "โทรศัพท์", lbl_social: "โซเชียล", lbl_wechat: "Wechat"
+            },
+            tr: {
+                header_sub: "Mimari Görselleştirme / Çalışmalar",
+                nav_gallery: "Galeri", nav_studio: "Stüdyo", nav_contact: "İletişim", btn_quote: "ÜCRETSİZ TEKLİF AL",
+                studio_title: "Yüksek Kaliteli Mimari Görselleştirme",
+                studio_p1: "<strong class='text-black'>10 yılı aşkın mesleki tecrübemizle</strong>, dünya çapındaki tasarım firmaları ve gayrimenkul geliştiricileri için yüksek etkili görüntüler sunuyoruz.",
+                studio_p2: "Sektörün hızlı temposunu anlıyoruz. Temel avantajlarımız <strong class='text-black'>Yüksek Maliyet Performansı</strong> ve <strong class='text-black'>Verimli Teslimat</strong>tır, tasarım vizyonunuzun kaliteden ödün vermeden iletilmesini sağlar.",
+                studio_p3: "İster sunumlar ister pazarlama kampanyaları için olsun, BUZZ konseptleri ticari gerçekliklere dönüştürmede güvenilir ortağınızdır.",
+                btn_consult: "DANIŞMANLIK REZERVASYONU",
+                lbl_address: "Adres", val_address: "ŞANGHAY, ÇİN",
+                lbl_email: "E-posta", lbl_phone: "Telefon", lbl_social: "Sosyal", lbl_wechat: "Wechat"
+            },
+            es: {
+                header_sub: "Visualización Arquitectónica / Obras",
+                nav_gallery: "Galería", nav_studio: "Estudio", nav_contact: "Contacto", btn_quote: "COTIZACIÓN GRATIS",
+                studio_title: "Visualización Arquitectónica de Alta Calidad",
+                studio_p1: "Con más de <strong class='text-black'>10 años de experiencia profesional</strong> en visualización arquitectónica, nos especializamos en entregar imágenes de alto impacto para firmas de diseño y desarrolladores inmobiliarios en todo el mundo.",
+                studio_p2: "Entendemos la naturaleza acelerada de la industria. Nuestras principales ventajas radican en <strong class='text-black'>Alta Rentabilidad</strong> y <strong class='text-black'>Entrega Eficiente</strong>, asegurando que su visión de diseño se comunique sin comprometer la calidad ni los plazos estrictos.",
+                studio_p3: "Ya sea para presentaciones, campañas de marketing o revisiones de diseño, BUZZ es su socio confiable para transformar conceptos en realidades comerciales convincentes.",
+                btn_consult: "RESERVAR UNA CONSULTA",
+                lbl_address: "Dirección", val_address: "SHANGHÁI, CHINA",
+                lbl_email: "Correo", lbl_phone: "Teléfono", lbl_social: "Redes", lbl_wechat: "Wechat"
+            },
+            pt: {
+                header_sub: "Visualização Arquitetônica / Obras",
+                nav_gallery: "Galeria", nav_studio: "Estúdio", nav_contact: "Contato", btn_quote: "ORÇAMENTO GRÁTIS",
+                studio_title: "Visualização Arquitetônica de Alta Qualidade",
+                studio_p1: "Com mais de <strong class='text-black'>10 anos de experiência profissional</strong> em visualização arquitetônica, somos especialistas em fornecer imagens de alto impacto para escritórios de design e construtoras em todo o mundo.",
+                studio_p2: "Entendemos a natureza acelerada do setor. Nossas vantagens são o <strong class='text-black'>Alto Custo-Benefício</strong> e a <strong class='text-black'>Entrega Eficiente</strong>, garantindo que sua visão de design seja comunicada perfeitamente, sem comprometer a qualidade ou os prazos.",
+                studio_p3: "Seja para apresentações, campanhas de marketing ou revisões de projetos, o BUZZ é seu parceiro confiável na transformação de conceitos em realidades comerciais convincentes.",
+                btn_consult: "AGENDAR CONSULTA",
+                lbl_address: "Endereço", val_address: "XANGAI, CHINA",
+                lbl_email: "E-mail", lbl_phone: "Telefone", lbl_social: "Redes", lbl_wechat: "Wechat"
+            },
+            ar: {
+                header_sub: "التصوير المعماري / الأعمال",
+                nav_gallery: "المعرض", nav_studio: "الاستوديو", nav_contact: "اتصال", btn_quote: "احصل على عرض سعر",
+                studio_title: "تصوير معماري عالي الجودة",
+                studio_p1: "مع أكثر من <strong class='text-black'>10 سنوات من الخبرة المهنية</strong> في التصوير المعماري، نحن متخصصون في تقديم صور عالية التأثير لشركات التصميم والمطورين العقاريين في جميع أنحاء العالم.",
+                studio_p2: "نحن نفهم الطبيعة السريعة للصناعة. تكمن مزايانا الأساسية في <strong class='text-black'>الفعالية العالية من حيث التكلفة</strong> و <strong class='text-black'>التسليم الفعال</strong>، مما يضمن توصيل رؤية التصميم الخاصة بك دون المساومة على الجودة أو المواعيد.",
+                studio_p3: "سواء كان ذلك للعروض التقديمية أو الحملات التسويقية أو مراجعات التصميم، فإن BUZZ هو شريكك الموثوق في تحويل المفاهيم إلى حقائق تجارية مقنعة.",
+                btn_consult: "احجز استشارة",
+                lbl_address: "العنوان", val_address: "شنغهاي، الصين",
+                lbl_email: "البريد", lbl_phone: "الهاتف", lbl_social: "التواصل", lbl_wechat: "وي تشات"
+            },
+            de: {
+                header_sub: "Architekturvisualisierung / Werke",
+                nav_gallery: "Galerie", nav_studio: "Studio", nav_contact: "Kontakt", btn_quote: "KOSTENLOSES ANGEBOT",
+                studio_title: "Hochwertige Architekturvisualisierung",
+                studio_p1: "Mit über <strong class='text-black'>10 Jahren Berufserfahrung</strong> in der Architekturvisualisierung sind wir darauf spezialisiert, weltweit wirkungsvolle Bilder für Designbüros und Immobilienentwickler zu liefern.",
+                studio_p2: "Wir verstehen die Schnelllebigkeit der Branche. Unsere Vorteile liegen in <strong class='text-black'>hoher Wirtschaftlichkeit</strong> und <strong class='text-black'>effizienter Lieferung</strong>, damit Ihre Vision ohne Kompromisse bei Qualität oder Fristen kommuniziert wird.",
+                studio_p3: "Ob für Pitch-Präsentationen, Marketing oder Design-Reviews – BUZZ ist Ihr zuverlässiger Partner, um Konzepte in überzeugende Realitäten zu verwandeln.",
+                btn_consult: "BERATUNG BUCHEN",
+                lbl_address: "Adresse", val_address: "SHANGHAI, CHINA",
+                lbl_email: "E-Mail", lbl_phone: "Telefon", lbl_social: "Sozial", lbl_wechat: "Wechat"
+            },
+            fr: {
+                header_sub: "Visualisation Architecturale / Œuvres",
+                nav_gallery: "Galerie", nav_studio: "Studio", nav_contact: "Contact", btn_quote: "DEVIS GRATUIT",
+                studio_title: "Visualisation Architecturale de Haute Qualité",
+                studio_p1: "Avec plus de <strong class='text-black'>10 ans d'expérience professionnelle</strong>, nous sommes spécialisés dans la fourniture d'images à fort impact pour les cabinets de design et les promoteurs immobiliers du monde entier.",
+                studio_p2: "Nous comprenons le rythme rapide de l'industrie. Nos avantages résident dans un <strong class='text-black'>excellent rapport qualité-prix</strong> et une <strong class='text-black'>livraison efficace</strong>, garantissant que votre vision est communiquée sans compromis.",
+                studio_p3: "Que ce soit pour des présentations, du marketing ou des revues de conception, BUZZ est votre partenaire de confiance pour transformer des concepts en réalités convaincantes.",
+                btn_consult: "RÉSERVER UNE CONSULTATION",
+                lbl_address: "Adresse", val_address: "SHANGHAI, CHINE",
+                lbl_email: "E-mail", lbl_phone: "Téléphone", lbl_social: "Social", lbl_wechat: "Wechat"
+            },
+            no: {
+                header_sub: "Arkitektonisk Visualisering / Verk",
+                nav_gallery: "Galleri", nav_studio: "Studio", nav_contact: "Kontakt", btn_quote: "FÅ ET GRATIS TILBUD",
+                studio_title: "Arkitektonisk Visualisering av Høy Kvalitet",
+                studio_p1: "Med over <strong class='text-black'>10 års yrkeserfaring</strong> spesialiserer vi oss på å levere bilder med høy effekt for designfirmaer og eiendomsutviklere over hele verden.",
+                studio_p2: "Vi forstår bransjens høye tempo. Våre kjernefordeler er <strong class='text-black'>høy kostnadseffektivitet</strong> og <strong class='text-black'>effektiv levering</strong>, noe som sikrer at din designvisjon formidles feilfritt.",
+                studio_p3: "Enten det er for presentasjoner, markedsføring eller designgjennomganger, er BUZZ din pålitelige partner for å transformere konsepter til kommersielle realiteter.",
+                btn_consult: "BESTILL KONSULTASJON",
+                lbl_address: "Adresse", val_address: "SHANGHAI, KINA",
+                lbl_email: "E-post", lbl_phone: "Telefon", lbl_social: "Sosialt", lbl_wechat: "Wechat"
+            },
+            ko: {
+                header_sub: "건축 시각화 / 작품",
+                nav_gallery: "갤러리", nav_studio: "스튜디오", nav_contact: "연락처", btn_quote: "무료 견적 받기",
+                studio_title: "고품질 건축 시각화",
+                studio_p1: "건축 시각화 분야의 <strong class='text-black'>10년 이상의 전문 경험</strong>을 바탕으로 전 세계 디자인 회사 및 부동산 개발업체를 위한 임팩트 있는 이미지를 제공합니다.",
+                studio_p2: "당사의 핵심 경쟁력은 <strong class='text-black'>높은 가성비</strong>와 <strong class='text-black'>효율적인 납품</strong>에 있으며, 품질이나 엄격한 마감일을 타협하지 않고 디자인 비전이 전달되도록 보장합니다.",
+                studio_p3: "프레젠테이션, 마케팅 캠페인 또는 디자인 리뷰 등 어떤 용도이든 BUZZ는 컨셉을 설득력 있는 상업적 현실로 변환하는 신뢰할 수 있는 파트너입니다.",
+                btn_consult: "상담 예약",
+                lbl_address: "주소", val_address: "중국 상하이",
+                lbl_email: "이메일", lbl_phone: "전화", lbl_social: "소셜", lbl_wechat: "위챗"
+            },
+            ja: {
+                header_sub: "建築ビジュアライゼーション / 作品",
+                nav_gallery: "ギャラリー", nav_studio: "スタジオ", nav_contact: "連絡先", btn_quote: "無料お見積り",
+                studio_title: "高品質な建築ビジュアライゼーション",
+                studio_p1: "建築CGにおける<strong class='text-black'>10年以上の専門的経験</strong>を持ち、世界中のデザイン事務所や不動産開発業者向けにインパクトのある画像を提供しています。",
+                studio_p2: "当社の主な強みは<strong class='text-black'>高い費用対効果</strong>と<strong class='text-black'>効率的な納品</strong>であり、品質や厳しい納期を妥協することなく、ビジョンを完璧に伝えます。",
+                studio_p3: "ピッチプレゼンテーション、マーケティング、デザインレビューなど、BUZZはコンセプトを説得力のある商業的現実に変えるパートナーです。",
+                btn_consult: "ご相談を予約する",
+                lbl_address: "住所", val_address: "中国 上海",
+                lbl_email: "Eメール", lbl_phone: "電話", lbl_social: "ソーシャル", lbl_wechat: "Wechat"
+            },
+            it: {
+                header_sub: "Visualizzazione Architettonica / Opere",
+                nav_gallery: "Galleria", nav_studio: "Studio", nav_contact: "Contatti", btn_quote: "PREVENTIVO GRATUITO",
+                studio_title: "Visualizzazione Architettonica di Alta Qualità",
+                studio_p1: "Con oltre <strong class='text-black'>10 anni di esperienza</strong>, siamo specializzati nel fornire immagini di grande impatto per studi di progettazione e sviluppatori immobiliari in tutto il mondo.",
+                studio_p2: "Comprendiamo la natura frenetica del settore. I nostri vantaggi risiedono nell'<strong class='text-black'>ottimo rapporto qualità-prezzo</strong> e nella <strong class='text-black'>consegna efficiente</strong>, assicurando che la tua visione venga comunicata senza compromessi.",
+                studio_p3: "Che si tratti di presentazioni, campagne o revisioni di progetto, BUZZ è il tuo partner affidabile per trasformare i concetti in realtà commerciali convincenti.",
+                btn_consult: "PRENOTA UNA CONSULENZA",
+                lbl_address: "Indirizzo", val_address: "SHANGHAI, CINA",
+                lbl_email: "E-mail", lbl_phone: "Telefono", lbl_social: "Social", lbl_wechat: "Wechat"
+            }
+        };
+
+        // 语言切换功能
+        function setLanguage(langCode) {
+            const data = translations[langCode];
+            if (!data) return;
+
+            // 更改按钮显示文本 (为了美观，如果带有下划线则只截取前缀比如 ZH_CN -> ZH)
+            const displayCode = langCode.includes('_') ? langCode.split('_')[0].toUpperCase() : langCode.toUpperCase();
+            document.getElementById('current-lang-display').innerText = displayCode;
+            
+            // 处理阿拉伯语的阅读方向 RTL
+            if (langCode === 'ar') {
+                document.body.setAttribute('dir', 'rtl');
+            } else {
+                document.body.setAttribute('dir', 'ltr');
+            }
+
+            // 更新所有带有 data-i18n 属性的文本
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (data[key]) {
+                    el.innerHTML = data[key];
+                }
+            });
+        }
+
         const IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
         const version = Date.now();
 
