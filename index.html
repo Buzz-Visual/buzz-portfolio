@@ -15,6 +15,8 @@
         :root {
             --bg-main: #fcfcfc; 
             --text-main: #111111;
+            --grid-gap: 1.5rem; 
+            --side-padding: 5rem;
         }
 
         body {
@@ -22,9 +24,33 @@
             background-color: var(--bg-main);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,0,0,0.2) transparent;
+            transition: direction 0.3s;
         }
 
-        /* --- 加载动画 --- */
+        /* 阿拉伯语右对齐适配 */
+        body[dir="rtl"] {
+            text-align: right;
+        }
+
+        /* 优化滚动条外观 */
+        body::-webkit-scrollbar {
+            width: 8px;
+        }
+        body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        body::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 2px solid var(--bg-main);
+        }
+        body::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
         #loader {
             position: fixed;
             inset: 0;
@@ -37,78 +63,89 @@
             transition: opacity 1s ease-out;
         }
 
-        /* --- 杂志感栅格系统 (Editorial Grid) --- */
-        .editorial-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 手机端 2 列 */
-            gap: 1rem;
+        .logo-buzz {
+            transition: letter-spacing 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            letter-spacing: -0.05em;
+        }
+        .logo-buzz:hover {
+            letter-spacing: 0.2em;
         }
 
-        @media (min-width: 1024px) {
-            .editorial-grid {
-                grid-template-columns: repeat(4, 1fr); /* 电脑端 4 列 */
-                grid-auto-rows: 20vw; /* 略微缩小行高，让竖构图更显眼 */
-                gap: 1.5rem;
-            }
+        .nav-link {
+            position: relative;
+            padding-bottom: 4px;
+            cursor: pointer;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--text-main);
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            transform: translateX(-50%);
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .masonry-container {
+            display: flex;
+            gap: var(--grid-gap);
+            align-items: start;
+        }
+
+        .masonry-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--grid-gap);
         }
 
         .grid-item {
             position: relative;
-            overflow: hidden;
-            background: #f4f4f4;
+            background: #f4f4f4; 
             transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        /* 重点图片跨行跨列设置 */
-        @media (min-width: 1024px) {
-            .grid-item.featured {
-                grid-column: span 2;
-                grid-row: span 2;
-            }
-            .grid-item.tall {
-                grid-row: span 2; /* 竖构图占两行高度 */
-            }
-            .grid-item.wide {
-                grid-column: span 2; /* 横构图占两列宽度 */
-            }
-        }
-
-        .grid-item img {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow: hidden; 
         }
 
-        .grid-item:hover img {
-            transform: scale(1.08);
-        }
-
-        /* 悬停时的编号信息 */
-        .item-info {
+        .grid-item::after {
+            content: '';
             position: absolute;
-            bottom: 1.5rem;
-            left: 1.5rem;
-            color: white;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1); 
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.4s ease;
-            mix-blend-mode: difference;
+            transition: opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1);
             z-index: 10;
         }
 
-        .grid-item:hover .item-info {
-            opacity: 1;
-            transform: translateY(0);
+        .grid-item:hover::after { opacity: 1; }
+
+        .grid-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.8s ease, transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 5;
         }
 
-        /* 灯箱预览 */
+        .grid-item img.loaded { opacity: 1; }
+        .grid-item:hover img.loaded { transform: scale(1.03); }
+
         #lightbox {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.99);
             z-index: 2000;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: zoom-out;
@@ -119,65 +156,563 @@
             letter-spacing: 0.4em;
             text-transform: uppercase;
         }
+        /* 针对部分不支持小写转换的语言，强制大写 */
+        .force-upper {
+            text-transform: uppercase;
+        }
 
-        ::-webkit-scrollbar { width: 0px; }
+        .page-content { transition: opacity 0.8s ease; }
+        .hidden-page { display: none; opacity: 0; }
+
+        #main-wrapper {
+            padding-left: var(--side-padding);
+            padding-right: var(--side-padding);
+            padding-top: 5rem;
+            padding-bottom: 5rem;
+        }
+
+        .social-link {
+            transition: color 0.3s ease;
+        }
+        .social-link:hover {
+            color: #000;
+        }
+
+        /* --- 商业转化按钮样式 (CTA) --- */
+        .btn-cta {
+            background-color: var(--text-main);
+            color: var(--bg-main);
+            padding: 0.6rem 1.2rem;
+            border-radius: 2px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .btn-cta:hover {
+            background-color: #333;
+            transform: translateY(-1px);
+        }
+        .btn-cta:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* 下拉菜单动画 */
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .group:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
 
+    <!-- 加载动画 -->
     <div id="loader">
         <div class="loader-count text-8xl font-thin tracking-tighter" id="loader-percent">00</div>
     </div>
 
-    <div id="lightbox" onclick="this.style.display='none'; document.body.style.overflow='auto'">
-        <img id="lightbox-img" class="max-w-[90%] max-h-[90%] object-contain" src="">
-        <div class="absolute top-12 right-12 micro-text">Close ✕</div>
+    <!-- 灯箱预览 -->
+    <div id="lightbox" onclick="if(event.target === this) { this.style.display='none'; document.body.style.overflow='auto'; }">
+        <img id="lightbox-img" class="max-w-[85%] max-h-[85%] object-contain shadow-sm mb-6" src="">
+        <!-- 惊艳时刻的直接询盘引导 (不破坏外部排版) -->
+        <a onclick="openQuoteModal()" class="btn-cta micro-text tracking-widest z-50 force-upper cursor-pointer" data-i18n="btn_quote">GET A FREE QUOTE</a>
+        <div class="absolute top-12 right-12 micro-text opacity-30 hover:opacity-100 transition-opacity cursor-pointer force-upper" onclick="document.getElementById('lightbox').style.display='none'; document.body.style.overflow='auto';">Close ✕</div>
     </div>
 
-    <div id="main-wrapper" class="p-6 md:p-12 lg:p-20">
-        
-        <header class="mb-24 flex flex-col md:flex-row justify-between items-baseline">
-            <div>
-                <h1 class="text-6xl md:text-8xl font-thin tracking-tighter mb-4">BUZZ</h1>
-                <p class="micro-text text-gray-400">Architectural Visualization / Portfolio</p>
+    <!-- 极简询价表单弹窗 -->
+    <div id="quote-modal" class="fixed inset-0 bg-black/80 z-[3000] hidden flex-col justify-center items-center opacity-0 transition-opacity duration-300" onclick="closeQuoteModal()">
+        <div class="bg-white w-[90%] max-w-xl p-10 md:p-14 relative cursor-default" onclick="event.stopPropagation()">
+            <div class="absolute top-6 right-6 cursor-pointer text-gray-400 hover:text-black text-xl" onclick="closeQuoteModal()">✕</div>
+            
+            <h3 class="text-2xl font-normal mb-8 force-upper" data-i18n="modal_title">GET A FREE QUOTE</h3>
+            
+            <!-- 表单区域：加入了 name 属性以便 Formspree 识别数据 -->
+            <form id="quote-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                <div>
+                    <label class="block micro-text text-gray-500 mb-2 force-upper" data-i18n="modal_name">Name / Company</label>
+                    <input type="text" name="Client_Name" required class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-black transition-colors bg-transparent text-sm">
+                </div>
+                <div>
+                    <label class="block micro-text text-gray-500 mb-2 force-upper" data-i18n="modal_contact">WhatsApp / WeChat / Email</label>
+                    <input type="text" name="Contact_Info" required class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-black transition-colors bg-transparent text-sm">
+                </div>
+                <div>
+                    <label class="block micro-text text-gray-500 mb-2 force-upper" data-i18n="modal_desc">Project Details</label>
+                    <textarea name="Project_Details" required rows="3" class="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-black transition-colors bg-transparent resize-none text-sm"></textarea>
+                </div>
+                <!-- 防止恶意机器人提交的隐藏字段 -->
+                <input type="hidden" name="_subject" value="New Quote Request from BUZZ Website!">
+                
+                <button id="submit-btn" type="submit" class="btn-cta w-full micro-text tracking-widest mt-4 force-upper cursor-pointer" data-i18n="modal_submit">SEND REQUEST</button>
+            </form>
+
+            <!-- 成功提示区域 (默认隐藏) -->
+            <div id="form-success" class="hidden flex-col justify-center items-center text-center py-10">
+                <svg class="w-16 h-16 text-green-600 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"></path></svg>
+                <h4 class="text-xl font-normal mb-3" data-i18n="modal_success_title">Request Sent</h4>
+                <p class="text-gray-500 text-sm mb-8 leading-relaxed" data-i18n="modal_success_desc">Thank you for reaching out. Our team will get back to you shortly.</p>
+                <button onclick="closeQuoteModal()" class="btn-cta micro-text tracking-widest force-upper cursor-pointer">CLOSE</button>
             </div>
-            <nav class="mt-8 md:mt-0 flex gap-8 micro-text">
-                <a href="#" class="hover:line-through">Works</a>
-                <a href="#" class="hover:line-through">Studio</a>
-                <a href="mailto:office@buzzvisual.com" class="font-bold border-b border-black">Contact</a>
-            </nav>
+        </div>
+    </div>
+
+    <div id="main-wrapper">
+        <header class="mb-32 flex flex-col lg:flex-row justify-between items-baseline gap-8">
+            <div class="cursor-pointer shrink-0" onclick="showPage('gallery')">
+                <h1 class="logo-buzz text-6xl md:text-8xl font-thin tracking-tighter mb-4" dir="ltr">BUZZ</h1>
+                <p class="micro-text text-gray-400" data-i18n="header_sub">Architectural Visualization / Works</p>
+            </div>
+            
+            <div class="flex flex-col lg:items-end gap-6 mt-8 lg:mt-0">
+                <!-- 优雅的多语言下拉菜单 -->
+                <div class="relative group z-50" dir="ltr">
+                    <button class="micro-text text-black font-bold flex items-center gap-2 pb-2 cursor-pointer">
+                        <span id="current-lang-display">EN</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute right-0 top-full bg-white border border-gray-100 shadow-2xl flex flex-col min-w-[160px] max-h-[60vh] overflow-y-auto z-50">
+                        <a onclick="setLanguage('en')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">EN - English</a>
+                        <a onclick="setLanguage('zh_cn')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ZH - 简体中文</a>
+                        <a onclick="setLanguage('zh_tw')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TW - 繁體中文</a>
+                        <a onclick="setLanguage('es')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ES - Español</a>
+                        <a onclick="setLanguage('pt')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">PT - Português</a>
+                        <a onclick="setLanguage('ar')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">AR - العربية</a>
+                        <a onclick="setLanguage('tr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TR - Türkçe</a>
+                        <a onclick="setLanguage('id')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">ID - Indonesia</a>
+                        <a onclick="setLanguage('vi')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">VI - Tiếng Việt</a>
+                        <a onclick="setLanguage('th')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">TH - ไทย</a>
+                        <a onclick="setLanguage('de')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">DE - Deutsch</a>
+                        <a onclick="setLanguage('fr')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">FR - Français</a>
+                        <a onclick="setLanguage('no')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">NO - Norsk</a>
+                        <a onclick="setLanguage('ko')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">KO - 한국어</a>
+                        <a onclick="setLanguage('ja')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">JA - 日本語</a>
+                        <a onclick="setLanguage('it')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer micro-text text-gray-500 hover:text-black">IT - Italiano</a>
+                    </div>
+                </div>
+
+                <!-- 导航与行动呼吁 -->
+                <nav class="flex flex-wrap items-center gap-6 lg:gap-8 micro-text force-upper">
+                    <a onclick="showPage('gallery')" class="nav-link" data-i18n="nav_gallery">Gallery</a>
+                    <a onclick="showPage('studio')" class="nav-link" data-i18n="nav_studio">Studio</a>
+                    <a onclick="toggleContact()" class="nav-link font-bold" data-i18n="nav_contact">Contact</a>
+                    <a onclick="openQuoteModal()" class="btn-cta tracking-widest lg:ml-2 cursor-pointer" data-i18n="btn_quote">GET A FREE QUOTE</a>
+                </nav>
+            </div>
         </header>
 
-        <main id="gallery" class="editorial-grid">
-            <!-- 图片由 JS 动态渲染 -->
+        <!-- 作品画廊页 -->
+        <main id="gallery-page" class="page-content">
+            <div class="masonry-container">
+                <div class="masonry-column" id="col-0"></div>
+                <div class="masonry-column" id="col-1"></div>
+                <div class="masonry-column" id="col-2"></div>
+            </div>
         </main>
 
-        <footer class="mt-40 mb-10 py-10 border-t border-gray-100 flex justify-between items-center micro-text text-gray-400">
-            <span>BUZZ VISUAL STUDIO</span>
-            <span>© 2024 ALL RIGHTS RESERVED</span>
+        <!-- 工作室介绍页 -->
+        <main id="studio-page" class="page-content hidden-page">
+            <div class="max-w-3xl">
+                <!-- 商业化文案重塑：切中痛点 -->
+                <h2 class="text-3xl font-normal mb-16 tracking-tight text-black" data-i18n="studio_title">High-Quality Architectural Visualization</h2>
+                <div class="space-y-12 text-lg font-light leading-relaxed text-gray-500">
+                    <p data-i18n="studio_p1">With over <strong class="text-black">10 years of professional experience</strong> in architectural visualization, we specialize in delivering high-impact imagery for design firms and real estate developers worldwide.</p>
+                    <p data-i18n="studio_p2">We understand the fast-paced nature of the industry. Our core advantages lie in <strong class="text-black">High Cost-Performance</strong> and <strong class="text-black">Efficient Delivery</strong>, ensuring your design vision is communicated flawlessly without compromising on quality or strict deadlines.</p>
+                    <p data-i18n="studio_p3">Whether it's for pitch presentations, marketing campaigns, or design reviews, BUZZ is your reliable partner in transforming concepts into compelling commercial realities.</p>
+                </div>
+                <!-- 强行动呼吁 (CTA) -->
+                <div class="mt-16">
+                    <a onclick="openQuoteModal()" class="btn-cta micro-text tracking-widest px-8 py-4 force-upper cursor-pointer" data-i18n="btn_consult">BOOK A CONSULTATION</a>
+                </div>
+            </div>
+        </main>
+
+        <!-- 联系方式区域 -->
+        <div id="contact-section" class="hidden-page mt-32 border-t border-gray-100 pt-20">
+            <div class="max-w-6xl grid grid-cols-1 md:grid-cols-4 gap-12 micro-text text-gray-400">
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_address">Address</p>
+                        <p class="leading-relaxed force-upper" data-i18n="val_address">SHANGHAI, CHINA</p>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_email">Email</p>
+                        <a href="mailto:info.buzzvisual@gmail.com" class="social-link" dir="ltr">info.buzzvisual@gmail.com</a>
+                    </div>
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_phone">Phone</p>
+                        <p class="mb-2" dir="ltr">+86 182 0175 6846</p>
+                        <p dir="ltr">+852 4463 8739 (HK)</p>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_social">Social</p>
+                        <div class="flex flex-col gap-2">
+                            <a href="https://www.instagram.com/buzz_visual/" target="_blank" class="social-link force-upper">Instagram</a>
+                            <a href="https://www.behance.net/405654359b463" target="_blank" class="social-link force-upper">Behance</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <p class="mb-4 text-black text-xs font-bold force-upper" data-i18n="lbl_wechat">Wechat</p>
+                        <p class="text-gray-500 font-medium" dir="ltr">18201756846</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-64 mb-10 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 micro-text text-gray-300 force-upper">
+            <span dir="ltr">BUZZ VISUAL STUDIO</span>
+            <span dir="ltr">© 2022</span>
         </footer>
     </div>
 
     <script>
-        // 原始图片数组
-        let IMAGE_ORDER = [
-            1, 40, 15, 35, 57, 10, 20, 5, 6, 7, 2, 3, 4, 8, 9, 11, 12, 13, 14, 16, 
-            17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 
-            37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 
-            56, 58, 59, 60, 61, 62, 63, 64
-        ];
+        // ==========================================
+        // 您的 Formspree 专属 API 链接已经接入完毕！
+        // ==========================================
+        const formspreeUrl = "https://formspree.io/f/mbdwdvbl"; 
 
-        // 随机洗牌函数
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+        // --- 弹窗逻辑处理 ---
+        function openQuoteModal() {
+            const modal = document.getElementById('quote-modal');
+            const form = document.getElementById('quote-form');
+            const successMsg = document.getElementById('form-success');
+            
+            form.reset(); 
+            form.style.display = 'block'; 
+            successMsg.style.display = 'none'; 
+            
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            document.body.style.overflow = 'hidden'; 
         }
 
-        const gallery = document.getElementById('gallery');
+        function closeQuoteModal() {
+            const modal = document.getElementById('quote-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                if(document.getElementById('lightbox').style.display === 'none' || document.getElementById('lightbox').style.display === '') {
+                    document.body.style.overflow = 'auto';
+                }
+            }, 300);
+        }
+
+        // --- 使用 AJAX 无感提交表单数据到 Formspree ---
+        async function handleFormSubmit(e) {
+            e.preventDefault(); 
+            
+            const form = e.target;
+            const data = new FormData(form);
+            const submitBtn = document.getElementById('submit-btn');
+            const originalBtnText = submitBtn.innerText;
+            
+            // 发送中的状态显示
+            submitBtn.innerText = "SENDING...";
+            submitBtn.disabled = true;
+            
+            try {
+                // 向您的 Formspree 专属链接发送数据
+                const response = await fetch(formspreeUrl, {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // 发送成功，切换显示成功面板
+                    form.style.display = 'none';
+                    document.getElementById('form-success').style.display = 'flex';
+                } else {
+                    // 如果链接没配对或者网络错误
+                    alert("Oops! There was a problem submitting your form. Please check your Formspree URL.");
+                }
+            } catch (error) {
+                alert("Network error! Please try again.");
+            } finally {
+                // 恢复按钮状态
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // --- 多语言翻译字典 ---
+        const translations = {
+            en: {
+                header_sub: "Architectural Visualization / Works",
+                nav_gallery: "Gallery", nav_studio: "Studio", nav_contact: "Contact", btn_quote: "GET A FREE QUOTE",
+                studio_title: "High-Quality Architectural Visualization",
+                studio_p1: "With over <strong class='text-black'>10 years of professional experience</strong> in architectural visualization, we specialize in delivering high-impact imagery for design firms and real estate developers worldwide.",
+                studio_p2: "We understand the fast-paced nature of the industry. Our core advantages lie in <strong class='text-black'>High Cost-Performance</strong> and <strong class='text-black'>Efficient Delivery</strong>, ensuring your design vision is communicated flawlessly without compromising on quality or strict deadlines.",
+                studio_p3: "Whether it's for pitch presentations, marketing campaigns, or design reviews, BUZZ is your reliable partner in transforming concepts into compelling commercial realities.",
+                btn_consult: "BOOK A CONSULTATION",
+                lbl_address: "Address", val_address: "SHANGHAI, CHINA",
+                lbl_email: "Email", lbl_phone: "Phone", lbl_social: "Social", lbl_wechat: "Wechat",
+                modal_title: "GET A FREE QUOTE", modal_name: "Name / Company", modal_contact: "WhatsApp / WeChat / Email", modal_desc: "Project Details", modal_submit: "SEND REQUEST", modal_success_title: "Request Sent", modal_success_desc: "Thank you for reaching out. Our team will get back to you shortly."
+            },
+            zh_cn: {
+                header_sub: "建筑视觉表现 / 作品集",
+                nav_gallery: "作品", nav_studio: "工作室", nav_contact: "联系我们", btn_quote: "获取免费报价",
+                studio_title: "高品质建筑视觉表现",
+                studio_p1: "我们在建筑视觉表现领域拥有<strong class='text-black'>十余年专业经验</strong>，专注于为全球设计公司和房地产开发商提供极具视觉冲击力的图像。",
+                studio_p2: "我们深知行业的快节奏。我们的核心优势在于<strong class='text-black'>高性价比</strong>和<strong class='text-black'>高效交付</strong>，确保在不妥协质量和严格时间节点的前提下，完美传达您的设计愿景。",
+                studio_p3: "无论是用于项目竞标、营销推广还是设计汇报，BUZZ 都是您将概念转化为商业现实的可靠合作伙伴。",
+                btn_consult: "预约咨询",
+                lbl_address: "地址", val_address: "中国，上海",
+                lbl_email: "邮箱", lbl_phone: "电话", lbl_social: "社交媒体", lbl_wechat: "微信",
+                modal_title: "获取免费报价", modal_name: "姓名 / 公司名称", modal_contact: "WhatsApp / 微信 / 邮箱", modal_desc: "项目详情描述", modal_submit: "发送请求", modal_success_title: "请求已发送", modal_success_desc: "感谢您的联系，我们的团队将尽快给您回复。"
+            },
+            zh_tw: {
+                header_sub: "建築視覺表現 / 作品集",
+                nav_gallery: "作品", nav_studio: "工作室", nav_contact: "聯絡我們", btn_quote: "獲取免費報價",
+                studio_title: "高品質建築視覺表現",
+                studio_p1: "我們在建築視覺表現領域擁有<strong class='text-black'>十餘年專業經驗</strong>，專注於為全球設計公司和房地產開發商提供極具視覺衝擊力的圖像。",
+                studio_p2: "我們深知行業的快節奏。我們的核心優勢在於<strong class='text-black'>高性價比</strong>和<strong class='text-black'>高效交付</strong>，確保在不妥協質量和嚴格時間節點的前提下，完美傳達您的設計願景。",
+                studio_p3: "無論是用於項目競標、行銷推廣還是設計彙報，BUZZ 都是您將概念轉化為商業現實的可靠合作夥伴。",
+                btn_consult: "預約諮詢",
+                lbl_address: "地址", val_address: "中國，上海",
+                lbl_email: "郵箱", lbl_phone: "電話", lbl_social: "社群媒體", lbl_wechat: "微信",
+                modal_title: "獲取免費報價", modal_name: "姓名 / 公司名稱", modal_contact: "WhatsApp / 微信 / 郵箱", modal_desc: "專案詳情描述", modal_submit: "發送請求", modal_success_title: "請求已發送", modal_success_desc: "感謝您的聯繫，我們的團隊將盡快給您回覆。"
+            },
+            id: {
+                header_sub: "Visualisasi Arsitektur / Karya",
+                nav_gallery: "Galeri", nav_studio: "Studio", nav_contact: "Kontak", btn_quote: "DAPATKAN PENAWARAN",
+                studio_title: "Visualisasi Arsitektur Berkualitas Tinggi",
+                studio_p1: "Dengan lebih dari <strong class='text-black'>10 tahun pengalaman profesional</strong>, kami mengkhususkan diri dalam memberikan citra berdampak tinggi untuk perusahaan desain dan pengembang real estat di seluruh dunia.",
+                studio_p2: "Kami memahami sifat industri yang serba cepat. Keunggulan inti kami terletak pada <strong class='text-black'>Kinerja Biaya Tinggi</strong> dan <strong class='text-black'>Pengiriman Efisien</strong>, memastikan visi desain Anda dikomunikasikan tanpa kompromi.",
+                studio_p3: "Baik untuk presentasi, pemasaran, atau tinjauan desain, BUZZ adalah mitra andal Anda dalam mengubah konsep menjadi realitas komersial.",
+                btn_consult: "PESAN KONSULTASI",
+                lbl_address: "Alamat", val_address: "SHANGHAI, TIONGKOK",
+                lbl_email: "Email", lbl_phone: "Telepon", lbl_social: "Sosial", lbl_wechat: "Wechat",
+                modal_title: "DAPATKAN PENAWARAN", modal_name: "Nama / Perusahaan", modal_contact: "WhatsApp / Email", modal_desc: "Detail Proyek", modal_submit: "KIRIM PERMINTAAN", modal_success_title: "Permintaan Terkirim", modal_success_desc: "Tim kami akan segera menghubungi Anda."
+            },
+            vi: {
+                header_sub: "Trực quan hóa Kiến trúc / Tác phẩm",
+                nav_gallery: "Thư viện", nav_studio: "Studio", nav_contact: "Liên hệ", btn_quote: "NHẬN BÁO GIÁ MIỄN PHÍ",
+                studio_title: "Trực quan hóa Kiến trúc Chất lượng cao",
+                studio_p1: "Với hơn <strong class='text-black'>10 năm kinh nghiệm</strong>, chúng tôi chuyên cung cấp hình ảnh có tác động cao cho các công ty thiết kế và nhà phát triển bất động sản trên toàn thế giới.",
+                studio_p2: "Lợi thế cốt lõi của chúng tôi là <strong class='text-black'>Hiệu quả Chi phí Cao</strong> và <strong class='text-black'>Giao hàng Nhanh chóng</strong>, đảm bảo tầm nhìn thiết kế của bạn được truyền đạt hoàn hảo.",
+                studio_p3: "Cho dù để thuyết trình dự án, tiếp thị hay đánh giá thiết kế, BUZZ là đối tác đáng tin cậy của bạn.",
+                btn_consult: "ĐẶT LỊCH TƯ VẤN",
+                lbl_address: "Địa chỉ", val_address: "THƯỢNG HẢI, TRUNG QUỐC",
+                lbl_email: "Email", lbl_phone: "Điện thoại", lbl_social: "Mạng xã hội", lbl_wechat: "Wechat",
+                modal_title: "NHẬN BÁO GIÁ MIỄN PHÍ", modal_name: "Tên / Công ty", modal_contact: "WhatsApp / Email", modal_desc: "Chi tiết dự án", modal_submit: "GỬI YÊU CẦU", modal_success_title: "Đã gửi yêu cầu", modal_success_desc: "Nhóm của chúng tôi sẽ liên hệ lại với bạn sớm."
+            },
+            th: {
+                header_sub: "การแสดงภาพทางสถาปัตยกรรม / ผลงาน",
+                nav_gallery: "แกลเลอรี", nav_studio: "สตูดิโอ", nav_contact: "ติดต่อ", btn_quote: "รับใบเสนอราคาฟรี",
+                studio_title: "การแสดงภาพทางสถาปัตยกรรมคุณภาพสูง",
+                studio_p1: "ด้วยประสบการณ์กว่า <strong class='text-black'>10 ปี</strong> เราเชี่ยวชาญในการสร้างสรรค์ภาพที่ทรงพลังสำหรับบริษัทออกแบบและนักพัฒนาอสังหาริมทรัพย์ทั่วโลก",
+                studio_p2: "ข้อได้เปรียบหลักของเราคือ <strong class='text-black'>ความคุ้มค่าสูง</strong> และ <strong class='text-black'>การส่งมอบที่รวดเร็ว</strong> เพื่อให้มั่นใจว่าวิสัยทัศน์ของคุณจะถูกสื่อสารอย่างสมบูรณ์แบบโดยไม่ลดทอนคุณภาพ",
+                studio_p3: "ไม่ว่าจะเป็นการนำเสนอโปรเจกต์ หรือแคมเปญการตลาด BUZZ คือพันธมิตรที่เชื่อถือได้ของคุณ",
+                btn_consult: "จองคิวรับคำปรึกษา",
+                lbl_address: "ที่อยู่", val_address: "เซี่ยงไฮ้, จีน",
+                lbl_email: "อีเมล", lbl_phone: "โทรศัพท์", lbl_social: "โซเชียล", lbl_wechat: "Wechat",
+                modal_title: "รับใบเสนอราคาฟรี", modal_name: "ชื่อ / บริษัท", modal_contact: "WhatsApp / อีเมล", modal_desc: "รายละเอียดโครงการ", modal_submit: "ส่งคำขอ", modal_success_title: "ส่งคำขอแล้ว", modal_success_desc: "ทีมงานของเราจะติดต่อกลับหาคุณในไม่ช้า"
+            },
+            tr: {
+                header_sub: "Mimari Görselleştirme / Çalışmalar",
+                nav_gallery: "Galeri", nav_studio: "Stüdyo", nav_contact: "İletişim", btn_quote: "ÜCRETSİZ TEKLİF AL",
+                studio_title: "Yüksek Kaliteli Mimari Görselleştirme",
+                studio_p1: "<strong class='text-black'>10 yılı aşkın mesleki tecrübemizle</strong>, dünya çapındaki tasarım firmaları ve gayrimenkul geliştiricileri için yüksek etkili görüntüler sunuyoruz.",
+                studio_p2: "Sektörün hızlı temposunu anlıyoruz. Temel avantajlarımız <strong class='text-black'>Yüksek Maliyet Performansı</strong> ve <strong class='text-black'>Verimli Teslimat</strong>tır, tasarım vizyonunuzun kaliteden ödün vermeden iletilmesini sağlar.",
+                studio_p3: "İster sunumlar ister pazarlama kampanyaları için olsun, BUZZ konseptleri ticari gerçekliklere dönüştürmede güvenilir ortağınızdır.",
+                btn_consult: "DANIŞMANLIK REZERVASYONU",
+                lbl_address: "Adres", val_address: "ŞANGHAY, ÇİN",
+                lbl_email: "E-posta", lbl_phone: "Telefon", lbl_social: "Sosyal", lbl_wechat: "Wechat",
+                modal_title: "ÜCRETSİZ TEKLİF AL", modal_name: "İsim / Şirket", modal_contact: "WhatsApp / E-posta", modal_desc: "Proje Detayları", modal_submit: "GÖNDER", modal_success_title: "Talep Gönderildi", modal_success_desc: "Ekibimiz en kısa sürede size geri dönüş yapacaktır."
+            },
+            es: {
+                header_sub: "Visualización Arquitectónica / Obras",
+                nav_gallery: "Galería", nav_studio: "Estudio", nav_contact: "Contacto", btn_quote: "COTIZACIÓN GRATIS",
+                studio_title: "Visualización Arquitectónica de Alta Calidad",
+                studio_p1: "Con más de <strong class='text-black'>10 años de experiencia profesional</strong> en visualización arquitectónica, nos especializamos en entregar imágenes de alto impacto para firmas de diseño y desarrolladores inmobiliarios en todo el mundo.",
+                studio_p2: "Entendemos la naturaleza acelerada de la industria. Nuestras principales ventajas radican en <strong class='text-black'>Alta Rentabilidad</strong> y <strong class='text-black'>Entrega Eficiente</strong>, asegurando que su visión de diseño se comunique sin comprometer la calidad ni los plazos estrictos.",
+                studio_p3: "Ya sea para presentaciones, campañas de marketing o revisiones de diseño, BUZZ es su socio confiable para transformar conceptos en realidades comerciales convincentes.",
+                btn_consult: "RESERVAR UNA CONSULTA",
+                lbl_address: "Dirección", val_address: "SHANGHÁI, CHINA",
+                lbl_email: "Correo", lbl_phone: "Teléfono", lbl_social: "Redes", lbl_wechat: "Wechat",
+                modal_title: "COTIZACIÓN GRATIS", modal_name: "Nombre / Empresa", modal_contact: "WhatsApp / Correo", modal_desc: "Detalles del Proyecto", modal_submit: "ENVIAR", modal_success_title: "Solicitud Enviada", modal_success_desc: "Nuestro equipo se pondrá en contacto pronto."
+            },
+            pt: {
+                header_sub: "Visualização Arquitetônica / Obras",
+                nav_gallery: "Galeria", nav_studio: "Estúdio", nav_contact: "Contato", btn_quote: "ORÇAMENTO GRÁTIS",
+                studio_title: "Visualização Arquitetônica de Alta Qualidade",
+                studio_p1: "Com mais de <strong class='text-black'>10 anos de experiência profissional</strong> em visualização arquitetônica, somos especialistas em fornecer imagens de alto impacto para escritórios de design e construtoras em todo o mundo.",
+                studio_p2: "Entendemos a natureza acelerada do setor. Nossas vantagens são o <strong class='text-black'>Alto Custo-Benefício</strong> e a <strong class='text-black'>Entrega Eficiente</strong>, garantindo que sua visão de design seja comunicada perfeitamente, sem comprometer a qualidade ou os prazos.",
+                studio_p3: "Seja para apresentações, campanhas de marketing ou revisões de projetos, o BUZZ é seu parceiro confiável na transformação de conceitos em realidades comerciais convincentes.",
+                btn_consult: "AGENDAR CONSULTA",
+                lbl_address: "Endereço", val_address: "XANGAI, CHINA",
+                lbl_email: "E-mail", lbl_phone: "Telefone", lbl_social: "Redes", lbl_wechat: "Wechat",
+                modal_title: "ORÇAMENTO GRÁTIS", modal_name: "Nome / Empresa", modal_contact: "WhatsApp / E-mail", modal_desc: "Detalhes do Projeto", modal_submit: "ENVIAR", modal_success_title: "Solicitação Enviada", modal_success_desc: "Nossa equipe entrará em contato em breve."
+            },
+            ar: {
+                header_sub: "التصوير المعماري / الأعمال",
+                nav_gallery: "المعرض", nav_studio: "الاستوديو", nav_contact: "اتصال", btn_quote: "احصل على عرض سعر",
+                studio_title: "تصوير معماري عالي الجودة",
+                studio_p1: "مع أكثر من <strong class='text-black'>10 سنوات من الخبرة المهنية</strong> في التصوير المعماري، نحن متخصصون في تقديم صور عالية التأثير لشركات التصميم والمطورين العقاريين في جميع أنحاء العالم.",
+                studio_p2: "نحن نفهم الطبيعة السريعة للصناعة. تكمن مزايانا الأساسية في <strong class='text-black'>الفعالية العالية من حيث التكلفة</strong> و <strong class='text-black'>التسليم الفعال</strong>، مما يضمن توصيل رؤية التصميم الخاصة بك دون المساومة على الجودة أو المواعيد.",
+                studio_p3: "سواء كان ذلك للعروض التقديمية أو الحملات التسويقية أو مراجعات التصميم، فإن BUZZ هو شريكك الموثوق في تحويل المفاهيم إلى حقائق تجارية مقنعة.",
+                btn_consult: "احجز استشارة",
+                lbl_address: "العنوان", val_address: "شنغهاي، الصين",
+                lbl_email: "البريد", lbl_phone: "الهاتف", lbl_social: "التواصل", lbl_wechat: "وي تشات",
+                modal_title: "احصل على عرض سعر", modal_name: "الاسم / الشركة", modal_contact: "واتساب / بريد إلكتروني", modal_desc: "تفاصيل المشروع", modal_submit: "إرسال الطلب", modal_success_title: "تم إرسال الطلب", modal_success_desc: "سيتواصل معك فريقنا قريبًا."
+            },
+            de: {
+                header_sub: "Architekturvisualisierung / Werke",
+                nav_gallery: "Galerie", nav_studio: "Studio", nav_contact: "Kontakt", btn_quote: "KOSTENLOSES ANGEBOT",
+                studio_title: "Hochwertige Architekturvisualisierung",
+                studio_p1: "Mit über <strong class='text-black'>10 Jahren Berufserfahrung</strong> in der Architekturvisualisierung sind wir darauf spezialisiert, weltweit wirkungsvolle Bilder für Designbüros und Immobilienentwickler zu liefern.",
+                studio_p2: "Wir verstehen die Schnelllebigkeit der Branche. Unsere Vorteile liegen in <strong class='text-black'>hoher Wirtschaftlichkeit</strong> und <strong class='text-black'>effizienter Lieferung</strong>, damit Ihre Vision ohne Kompromisse bei Qualität oder Fristen kommuniziert wird.",
+                studio_p3: "Ob für Pitch-Präsentationen, Marketing oder Design-Reviews – BUZZ ist Ihr zuverlässiger Partner, um Konzepte in überzeugende Realitäten zu verwandeln.",
+                btn_consult: "BERATUNG BUCHEN",
+                lbl_address: "Adresse", val_address: "SHANGHAI, CHINA",
+                lbl_email: "E-Mail", lbl_phone: "Telefon", lbl_social: "Sozial", lbl_wechat: "Wechat",
+                modal_title: "KOSTENLOSES ANGEBOT", modal_name: "Name / Firma", modal_contact: "WhatsApp / E-Mail", modal_desc: "Projektdetails", modal_submit: "SENDEN", modal_success_title: "Anfrage gesendet", modal_success_desc: "Unser Team wird sich in Kürze bei Ihnen melden."
+            },
+            fr: {
+                header_sub: "Visualisation Architecturale / Œuvres",
+                nav_gallery: "Galerie", nav_studio: "Studio", nav_contact: "Contact", btn_quote: "DEVIS GRATUIT",
+                studio_title: "Visualisation Architecturale de Haute Qualité",
+                studio_p1: "Avec plus de <strong class='text-black'>10 ans d'expérience professionnelle</strong>, nous sommes spécialisés dans la fourniture d'images à fort impact pour les cabinets de design et les promoteurs immobiliers du monde entier.",
+                studio_p2: "Nous comprenons le rythme rapide de l'industrie. Nos avantages résident dans un <strong class='text-black'>excellent rapport qualité-prix</strong> et une <strong class='text-black'>livraison efficace</strong>, garantissant que votre vision est communiquée sans compromis.",
+                studio_p3: "Que ce soit pour des présentations, du marketing ou des revues de conception, BUZZ est votre partenaire de confiance pour transformer des concepts en réalités convaincantes.",
+                btn_consult: "RÉSERVER UNE CONSULTATION",
+                lbl_address: "Adresse", val_address: "SHANGHAI, CHINE",
+                lbl_email: "E-mail", lbl_phone: "Téléphone", lbl_social: "Social", lbl_wechat: "Wechat",
+                modal_title: "DEVIS GRATUIT", modal_name: "Nom / Entreprise", modal_contact: "WhatsApp / E-mail", modal_desc: "Détails du projet", modal_submit: "ENVOYER", modal_success_title: "Demande envoyée", modal_success_desc: "Notre équipe vous contactera sous peu."
+            },
+            no: {
+                header_sub: "Arkitektonisk Visualisering / Verk",
+                nav_gallery: "Galleri", nav_studio: "Studio", nav_contact: "Kontakt", btn_quote: "FÅ ET GRATIS TILBUD",
+                studio_title: "Arkitektonisk Visualisering av Høy Kvalitet",
+                studio_p1: "Med over <strong class='text-black'>10 års yrkeserfaring</strong> spesialiserer vi oss på å levere bilder med høy effekt for designfirmaer og eiendomsutviklere over hele verden.",
+                studio_p2: "Vi forstår bransjens høye tempo. Våre kjernefordeler er <strong class='text-black'>høy kostnadseffektivitet</strong> og <strong class='text-black'>effektiv levering</strong>, noe som sikrer at din designvisjon formidles feilfritt.",
+                studio_p3: "Enten det er for presentasjoner, markedsføring eller designgjennomganger, er BUZZ din pålitelige partner for å transformere konsepter til kommersielle realiteter.",
+                btn_consult: "BESTILL KONSULTASJON",
+                lbl_address: "Adresse", val_address: "SHANGHAI, KINA",
+                lbl_email: "E-post", lbl_phone: "Telefon", lbl_social: "Sosialt", lbl_wechat: "Wechat",
+                modal_title: "FÅ ET GRATIS TILBUD", modal_name: "Navn / Firma", modal_contact: "WhatsApp / E-post", modal_desc: "Prosjektdetaljer", modal_submit: "SEND FORESPØRSEL", modal_success_title: "Forespørsel sendt", modal_success_desc: "Teamet vårt vil kontakte deg snart."
+            },
+            ko: {
+                header_sub: "건축 시각화 / 작품",
+                nav_gallery: "갤러리", nav_studio: "스튜디오", nav_contact: "연락처", btn_quote: "무료 견적 받기",
+                studio_title: "고품질 건축 시각화",
+                studio_p1: "건축 시각화 분야의 <strong class='text-black'>10년 이상의 전문 경험</strong>을 바탕으로 전 세계 디자인 회사 및 부동산 개발업체를 위한 임팩트 있는 이미지를 제공합니다.",
+                studio_p2: "당사의 핵심 경쟁력은 <strong class='text-black'>높은 가성비</strong>와 <strong class='text-black'>효율적인 납품</strong>에 있으며, 품질이나 엄격한 마감일을 타협하지 않고 디자인 비전이 전달되도록 보장합니다.",
+                studio_p3: "프레젠테이션, 마케팅 캠페인 또는 디자인 리뷰 등 어떤 용도이든 BUZZ는 컨셉을 설득력 있는 상업적 현실로 변환하는 신뢰할 수 있는 파트너입니다.",
+                btn_consult: "상담 예약",
+                lbl_address: "주소", val_address: "중국 상하이",
+                lbl_email: "이메일", lbl_phone: "전화", lbl_social: "소셜", lbl_wechat: "위챗",
+                modal_title: "무료 견적 받기", modal_name: "이름 / 회사", modal_contact: "WhatsApp / 이메일", modal_desc: "프로젝트 세부 정보", modal_submit: "요청 보내기", modal_success_title: "요청이 전송되었습니다", modal_success_desc: "우리 팀이 곧 연락을 드릴 것입니다."
+            },
+            ja: {
+                header_sub: "建築ビジュアライゼーション / 作品",
+                nav_gallery: "ギャラリー", nav_studio: "スタジオ", nav_contact: "連絡先", btn_quote: "無料お見積り",
+                studio_title: "高品質な建築ビジュアライゼーション",
+                studio_p1: "建築CGにおける<strong class='text-black'>10年以上の専門的経験</strong>を持ち、世界中のデザイン事務所や不動産開発業者向けにインパクトのある画像を提供しています。",
+                studio_p2: "当社の主な強みは<strong class='text-black'>高い費用対効果</strong>と<strong class='text-black'>効率的な納品</strong>であり、品質や厳しい納期を妥協することなく、ビジョンを完璧に伝えます。",
+                studio_p3: "ピッチプレゼンテーション、マーケティング、デザインレビューなど、BUZZはコンセプトを説得力のある商業的現実に変えるパートナーです。",
+                btn_consult: "ご相談を予約する",
+                lbl_address: "住所", val_address: "中国 上海",
+                lbl_email: "Eメール", lbl_phone: "電話", lbl_social: "ソーシャル", lbl_wechat: "Wechat",
+                modal_title: "無料お見積り", modal_name: "名前 / 会社名", modal_contact: "WhatsApp / Eメール", modal_desc: "プロジェクト詳細", modal_submit: "送信", modal_success_title: "送信完了", modal_success_desc: "担当者より近日中にご連絡いたします。"
+            },
+            it: {
+                header_sub: "Visualizzazione Architettonica / Opere",
+                nav_gallery: "Galleria", nav_studio: "Studio", nav_contact: "Contatti", btn_quote: "PREVENTIVO GRATUITO",
+                studio_title: "Visualizzazione Architettonica di Alta Qualità",
+                studio_p1: "Con oltre <strong class='text-black'>10 anni di esperienza</strong>, siamo specializzati nel fornire immagini di grande impatto per studi di progettazione e sviluppatori immobiliari in tutto il mondo.",
+                studio_p2: "Comprendiamo la natura frenetica del settore. I nostri vantaggi risiedono nell'<strong class='text-black'>ottimo rapporto qualità-prezzo</strong> e nella <strong class='text-black'>consegna efficiente</strong>, assicurando che la tua visione venga comunicata senza compromessi.",
+                studio_p3: "Che si tratti di presentazioni, campagne o revisioni di progetto, BUZZ è il tuo partner affidabile per trasformare i concetti in realtà commerciali convincenti.",
+                btn_consult: "PRENOTA UNA CONSULENZA",
+                lbl_address: "Indirizzo", val_address: "SHANGHAI, CINA",
+                lbl_email: "E-mail", lbl_phone: "Telefono", lbl_social: "Social", lbl_wechat: "Wechat",
+                modal_title: "PREVENTIVO GRATUITO", modal_name: "Nome / Azienda", modal_contact: "WhatsApp / E-mail", modal_desc: "Dettagli del Progetto", modal_submit: "INVIA", modal_success_title: "Richiesta Inviata", modal_success_desc: "Il nostro team ti contatterà a breve."
+            }
+        };
+
+        // 语言切换功能
+        function setLanguage(langCode) {
+            const data = translations[langCode];
+            if (!data) return;
+
+            const displayCode = langCode.includes('_') ? langCode.split('_')[0].toUpperCase() : langCode.toUpperCase();
+            document.getElementById('current-lang-display').innerText = displayCode;
+            
+            if (langCode === 'ar') {
+                document.body.setAttribute('dir', 'rtl');
+            } else {
+                document.body.setAttribute('dir', 'ltr');
+            }
+
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (data[key]) {
+                    el.innerHTML = data[key];
+                }
+            });
+        }
+
+        const IMAGE_ORDER = [37,22,52,27,5,58,18,40,30,50,35,16,42,46,36,20,6,23,62,28,55,19,49,56,47,2,29,45,44,59,38,15,3,21,57,64,24,31,63,51,13,1,60,10,34,4,14,61,48,12,54,25,9,33,11,53,17,43,32,8,41,39,26,7];
         const version = Date.now();
+
+        function hideContact() {
+            const contactSection = document.getElementById('contact-section');
+            if (contactSection) {
+                contactSection.classList.add('hidden-page');
+            }
+        }
+
+        function toggleContact() {
+            const contactSection = document.getElementById('contact-section');
+            if (contactSection.classList.contains('hidden-page')) {
+                contactSection.classList.remove('hidden-page');
+                setTimeout(() => {
+                    contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+            } else {
+                contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function showPage(pageId) {
+            const galleryPage = document.getElementById('gallery-page');
+            const studioPage = document.getElementById('studio-page');
+            hideContact();
+            if (pageId === 'studio') {
+                galleryPage.style.opacity = '0';
+                setTimeout(() => {
+                    galleryPage.classList.add('hidden-page');
+                    studioPage.classList.remove('hidden-page');
+                    setTimeout(() => studioPage.style.opacity = '1', 50);
+                }, 400);
+            } else {
+                studioPage.style.opacity = '0';
+                setTimeout(() => {
+                    studioPage.classList.add('hidden-page');
+                    galleryPage.classList.remove('hidden-page');
+                    setTimeout(() => galleryPage.style.opacity = '1', 50);
+                }, 400);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         function startLoader() {
             let count = 0;
@@ -188,52 +723,108 @@
                     count = 100;
                     clearInterval(interval);
                     setTimeout(() => {
-                        document.getElementById('loader').style.opacity = '0';
-                        setTimeout(() => document.getElementById('loader').remove(), 1000);
+                        const loader = document.getElementById('loader');
+                        if(loader) {
+                            loader.style.opacity = '0';
+                            setTimeout(() => loader.remove(), 1000);
+                        }
                     }, 400);
                 }
                 counter.innerText = count.toString().padStart(2, '0');
             }, 60);
         }
 
-        function initGallery() {
-            // 在渲染前打乱顺序
-            shuffleArray(IMAGE_ORDER);
+        async function initGallery() {
+            const columnElements = [
+                document.getElementById('col-0'), 
+                document.getElementById('col-1'), 
+                document.getElementById('col-2')
+            ];
+            
+            if (!columnElements[0] || !columnElements[1]) return;
 
-            IMAGE_ORDER.forEach((imgId, index) => {
-                const fileName = `1 (${imgId}).jpg`;
-                const item = document.createElement('div');
-                
-                let classes = ['grid-item', 'cursor-pointer'];
-                
-                // 调整杂志排版节奏，增加竖图(tall)的权重
-                if (index === 0) {
-                    classes.push('featured'); // 第一张大焦点
-                } else if (index % 10 === 0) {
-                    classes.push('featured'); // 偶发性大焦点
-                } else if (index % 3 === 0) {
-                    classes.push('tall');     // 提高竖图频率（每3张出一个）
-                } else if (index % 7 === 0) {
-                    classes.push('wide');     // 较低频率的横图
+            const isMobile = window.innerWidth < 1024;
+            const colCount = isMobile ? 2 : 3;
+            let colHeights = new Array(colCount).fill(0);
+
+            const col2 = document.getElementById('col-2');
+            if (isMobile && col2) col2.style.display = 'none';
+
+            const loadedMetadata = {};
+            let nextIndexToRender = 0;
+
+            function renderNextAvailable() {
+                while (nextIndexToRender < IMAGE_ORDER.length) {
+                    const imgId = IMAGE_ORDER[nextIndexToRender];
+                    const data = loadedMetadata[imgId];
+                    if (!data) break;
+
+                    const { img, finalSrc, width, height } = data;
+                    let minHeightIndex = 0;
+                    let minHeight = colHeights[0];
+                    for (let i = 1; i < colCount; i++) {
+                        if (colHeights[i] < minHeight) {
+                            minHeight = colHeights[i];
+                            minHeightIndex = i;
+                        }
+                    }
+
+                    const targetColumn = columnElements[minHeightIndex];
+                    if (!targetColumn) {
+                        nextIndexToRender++;
+                        continue;
+                    }
+
+                    const item = document.createElement('div');
+                    item.className = 'grid-item';
+                    const ratio = (height / width) * 100;
+                    item.style.paddingBottom = `${ratio}%`;
+                    
+                    item.onclick = () => {
+                        document.getElementById('lightbox-img').src = finalSrc;
+                        document.getElementById('lightbox').style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    };
+
+                    img.style.position = 'absolute';
+                    img.style.top = '0';
+                    img.style.left = '0';
+                    img.classList.add('loaded');
+                    
+                    item.appendChild(img);
+                    targetColumn.appendChild(item);
+
+                    colHeights[minHeightIndex] += (height / width);
+                    nextIndexToRender++;
                 }
-                
-                item.className = classes.join(' ');
-                
-                const finalSrc = encodeURI(fileName) + `?v=${version}`;
+            }
 
-                item.onclick = () => {
-                    document.getElementById('lightbox-img').src = finalSrc;
-                    document.getElementById('lightbox').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
+            IMAGE_ORDER.forEach((imgId) => {
+                const fileName = `1 (${imgId}).jpg`;
+                const finalSrc = `${encodeURIComponent(fileName)}?v=${version}`;
+                const img = new Image();
+                img.src = finalSrc;
+                
+                const checkSize = () => {
+                    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                        loadedMetadata[imgId] = { img, finalSrc, width: img.naturalWidth, height: img.naturalHeight };
+                        renderNextAvailable();
+                        return true;
+                    }
+                    return false;
                 };
 
-                item.innerHTML = `
-                    <img src="${finalSrc}" alt="Archive ${imgId}" loading="lazy" onerror="this.parentElement.style.display='none'">
-                    <div class="item-info">
-                        <span class="micro-text">Ref. ${imgId < 10 ? '0'+imgId : imgId}</span>
-                    </div>
-                `;
-                gallery.appendChild(item);
+                if (!checkSize()) {
+                    img.onload = checkSize;
+                    const interval = setInterval(() => {
+                        if (checkSize()) clearInterval(interval);
+                    }, 50);
+                }
+                img.onerror = () => {
+                    loadedMetadata[imgId] = "error"; 
+                    nextIndexToRender++;
+                    renderNextAvailable();
+                };
             });
         }
 
